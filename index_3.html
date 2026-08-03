@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FLUGSA · Simulación Swabbing — Pozo LH-46</title>
+<meta name="description" content="Simulación operativa de swabbing en pozos fuera del total de extracción en la Cuenca del Golfo San Jorge. Pozo LH-46, batería LH-01.">
+<meta name="theme-color" content="#F2EDE4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================ TOKENS === */
+:root{
+  --ink:#0B0B0C;        --ink-2:#3B372F;      --ink-3:#7C7466;
+  --paper:#F2EDE4;      --paper-2:#E8E1D4;    --card:#FFFFFF;
+  --line:#DCD2C0;       --line-2:#EAE2D4;
+  --amber:#B8722A;      --amber-d:#8A4E18;    --amber-l:#E8AC54;
+  --crude:#14100E;      --crude-2:#2A2521;
+  --water:#2A7CB0;      --water-l:#8FC9E8;
+  --steel:#7E8A9A;      --steel-l:#C3CCD6;
+  --ph-bajada:#1D6FB8;  --ph-inmersion:#6D4AA8; --ph-izaje:#5F6165;
+  --ph-descarga:#27763D;--ph-afluencia:#0D7A7A;
+  --alert:#BC362A;
+
+  --fd:"Barlow Condensed",'Arial Narrow',sans-serif;   /* display */
+  --fb:"Barlow",system-ui,-apple-system,sans-serif;    /* body    */
+  --fm:"IBM Plex Mono",ui-monospace,Menlo,monospace;   /* datos   */
+
+  --r:10px; --r-l:14px;
+  --sh:0 1px 2px rgba(80,64,42,.06), 0 6px 18px -8px rgba(80,64,42,.22);
+  --gutter:clamp(12px,2.2vw,26px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--fb); font-size:15px; line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+:focus-visible{outline:2.5px solid var(--amber); outline-offset:2px; border-radius:4px}
+
+/* ============================================================ HEADER === */
+.top{
+  position:sticky; top:0; z-index:40;
+  background:linear-gradient(180deg,#FFFDF9,#F1EBE0);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 1px 0 rgba(255,255,255,.7) inset;
+}
+.top::after{content:"";display:block;height:3px;
+  background:linear-gradient(90deg,var(--amber) 0 34%,var(--line) 34% 100%)}
+.top-in{
+  max-width:1920px; margin:0 auto; padding:12px var(--gutter);
+  display:flex; align-items:center; gap:clamp(10px,1.6vw,22px); flex-wrap:wrap;
+}
+.brand{display:flex; align-items:center; gap:12px; flex:0 0 auto}
+.brand img{height:46px; width:auto; display:block}
+.brand-tx b{
+  display:block; font-family:var(--fd); font-weight:700;
+  font-size:clamp(26px,2.6vw,34px); letter-spacing:.02em; line-height:.94; color:var(--ink);
+}
+.brand-tx span{
+  display:block; font-family:var(--fb); font-weight:700; color:var(--ink);
+  font-size:10px; letter-spacing:.22em; text-transform:uppercase; margin-top:3px;
+}
+.rule{width:1px; align-self:stretch; background:var(--line); flex:0 0 auto}
+.hd-title{flex:1 1 320px; min-width:0}
+.hd-title h1{
+  margin:0; font-family:var(--fd); font-weight:700;
+  font-size:clamp(17px,1.62vw,25px); letter-spacing:.008em; line-height:1.05; color:var(--ink);
+}
+.hd-title p{margin:4px 0 0; font-weight:700; color:var(--ink); font-size:clamp(11px,.94vw,13.5px)}
+.hd-well{flex:0 0 auto; text-align:right; margin-left:auto}
+.hd-well b{
+  display:block; font-family:var(--fd); font-weight:700;
+  font-size:clamp(19px,1.7vw,26px); letter-spacing:.01em; line-height:1
+}
+.hd-well span{display:block; font-size:clamp(11px,.9vw,13px); color:var(--ink-2); margin-top:3px}
+.hd-well span i{font-style:normal; color:var(--ink-3)}
+
+/* ============================================================= WORK ==== */
+.work{
+  max-width:1920px; margin:0 auto;
+  padding:var(--gutter) var(--gutter) 20px;
+  display:grid; gap:var(--gutter);
+  grid-template-columns:1fr;
+}
+@media (min-width:1080px){ .work{grid-template-columns:minmax(0,1fr) 400px} }
+@media (min-width:1560px){ .work{grid-template-columns:minmax(0,1fr) 392px 392px} }
+
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r-l);
+  box-shadow:var(--sh);
+}
+.card-h{
+  display:flex; align-items:baseline; gap:10px;
+  padding:14px 18px 10px; border-bottom:1px solid var(--line-2);
+}
+.card-h h2{
+  margin:0; font-family:var(--fd); font-weight:700; color:var(--ink);
+  font-size:19px; letter-spacing:.03em; text-transform:uppercase;
+}
+.card-h em{margin-left:auto; font-style:normal; font-size:11.5px; color:var(--ink-3)}
+.card-b{padding:16px 18px 18px}
+
+/* --- escena --- */
+.stage{position:relative; overflow:hidden; padding:0}
+.stage svg{display:block; width:100%; height:auto; max-height:1180px}
+.stage-tag{
+  position:absolute; left:14px; top:12px; z-index:2;
+  display:flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,.9); border:1px solid var(--line);
+  border-radius:999px; padding:5px 12px 5px 8px;
+  font-family:var(--fd); font-weight:600; font-size:14px; letter-spacing:.06em;
+  text-transform:uppercase; backdrop-filter:blur(4px);
+}
+.stage-tag i{width:9px;height:9px;border-radius:50%;background:var(--amber);font-style:normal}
+
+/* --- estado / fase --- */
+.state{display:grid; grid-template-columns:1.25fr .72fr 1fr; gap:10px}
+@media (max-width:560px){.state{grid-template-columns:1fr 1fr}.state div:last-child{grid-column:1/-1}}
+.state div span{
+  display:block; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:600; margin-bottom:2px;
+}
+.state div b{font-family:var(--fm); font-weight:600; font-size:clamp(15px,1.35vw,22px); color:var(--ink); letter-spacing:-.02em; white-space:nowrap}
+.state div i{font-style:normal; font-size:13px; color:var(--ink-2); font-weight:500}
+.state em{display:block; font-style:normal; font-size:10.5px; color:var(--ink-3); margin-top:1px}
+
+.phase{display:flex; align-items:center; gap:11px; margin-top:16px}
+.phase i{width:15px;height:15px;border-radius:50%;flex:0 0 auto;background:var(--ph-bajada)}
+.phase b{font-family:var(--fd); font-weight:700; font-size:clamp(24px,2vw,32px); letter-spacing:.02em; line-height:1}
+.phase-d{margin:8px 0 0; color:var(--ink-2); font-size:13.5px; min-height:2.9em}
+.pills{display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-top:12px}
+.pill{
+  border-radius:999px; padding:5px 2px; text-align:center;
+  font-family:var(--fd); font-weight:700; font-size:11.5px; letter-spacing:.05em;
+  text-transform:uppercase; color:#fff; background:#CFCABF; transition:background .25s,color .25s;
+}
+
+/* --- KPI --- */
+.kpis{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px}
+@media (max-width:520px){ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.kpi{
+  position:relative; background:#FBF8F2; border:1px solid var(--line-2);
+  border-radius:var(--r); padding:10px 9px 9px 13px; overflow:hidden;
+}
+.kpi::before{content:""; position:absolute; left:0; top:11px; bottom:11px; width:4px;
+  border-radius:0 3px 3px 0; background:var(--kc,var(--amber))}
+.kpi span{
+  display:block; font-size:9.6px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:600; line-height:1.25; min-height:2.5em;
+}
+.kpi b{display:block; font-family:var(--fm); font-weight:600; color:var(--ink);
+  font-size:clamp(18px,1.55vw,25px); line-height:1.2; letter-spacing:-.03em; white-space:nowrap}
+.kpi u{position:absolute; right:10px; bottom:8px; text-decoration:none;
+  font-size:11px; color:var(--ink-3); font-weight:600}
+
+/* --- barras --- */
+.bars{display:grid; grid-template-columns:repeat(6,1fr); gap:9px; align-items:end; height:132px}
+.bar{position:relative; height:100%; display:flex; flex-direction:column; justify-content:flex-end}
+.bar-v{
+  font-family:var(--fm); font-size:12.5px; font-weight:600; text-align:center;
+  margin-bottom:4px; color:var(--ink); opacity:0; transition:opacity .2s
+}
+.bar-t{position:relative; background:#EFEAE0; border-radius:7px; overflow:hidden; height:0%;
+  transition:height .12s linear}
+.bar-f{position:absolute; inset:0; background:var(--crude); border-radius:7px}
+.bar-w{position:absolute; left:0; right:0; bottom:0; height:0; background:var(--water-l)}
+.bar-l{text-align:center; font-size:11.5px; font-weight:600; color:var(--ink-3); margin-top:7px}
+.prog{display:flex; align-items:center; gap:12px; margin-top:16px}
+.prog span{font-size:10.5px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+.prog-t{flex:1; height:14px; background:#EFEAE0; border-radius:999px; overflow:hidden}
+.prog-f{height:100%; width:0; background:var(--crude); border-radius:999px; transition:width .12s linear}
+.prog b{font-family:var(--fm); font-size:13px; font-weight:600; white-space:nowrap}
+
+/* --- detalle herramienta --- */
+.tool-cap{margin:10px 0 0; font-size:13px; color:var(--ink-2); min-height:2.9em}
+
+/* ========================================================== CONTROLES == */
+.dock{
+  position:sticky; bottom:0; z-index:35;
+  background:linear-gradient(0deg,#FFFDF9,#F5F0E7);
+  border-top:1px solid var(--line);
+  padding:10px var(--gutter) calc(12px + env(safe-area-inset-bottom));
+}
+.dock-in{max-width:1920px; margin:0 auto; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+.btns{display:flex; align-items:center; gap:8px}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  height:40px; padding:0 15px; border:1px solid var(--line); border-radius:9px;
+  background:#fff; color:var(--ink); font-family:var(--fb); font-weight:600; font-size:13.5px;
+  cursor:pointer; transition:background .15s,border-color .15s,transform .06s;
+}
+.btn:hover{background:#FBF7EF; border-color:#CDBFA6}
+.btn:active{transform:translateY(1px)}
+.btn svg{width:16px;height:16px;fill:currentColor}
+.btn.pri{background:var(--ink); color:#fff; border-color:var(--ink); min-width:118px}
+.btn.pri:hover{background:#26221C}
+.btn.on{background:var(--amber); border-color:var(--amber); color:#fff}
+.seg{display:flex; border:1px solid var(--line); border-radius:9px; overflow:hidden; background:#fff}
+.seg button{
+  border:0; background:transparent; height:38px; padding:0 12px; cursor:pointer;
+  font-family:var(--fm); font-size:12.5px; font-weight:600; color:var(--ink-2);
+}
+.seg button+button{border-left:1px solid var(--line-2)}
+.seg button[aria-pressed="true"]{background:var(--ink); color:#fff}
+
+.track-wrap{flex:1 1 380px; min-width:250px}
+.track-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px}
+.track-top span{font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+.track-top b{font-family:var(--fm); font-size:12.5px; font-weight:600}
+.track{
+  position:relative; height:38px; border:1px solid var(--line); border-radius:8px;
+  overflow:hidden; background:#fff; cursor:pointer; touch-action:none;
+}
+.lane{position:absolute; inset:0; display:flex}
+.lane i{display:block; height:100%; opacity:.34}
+.lane i.done{opacity:.62}
+.trace{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+.divs{position:absolute; inset:0; pointer-events:none}
+.divs u{position:absolute; top:0; bottom:0; width:1px; background:rgba(0,0,0,.16); text-decoration:none}
+.divs u::after{
+  content:attr(data-c); position:absolute; top:2px; left:4px;
+  font-family:var(--fd); font-weight:600; font-size:10.5px; color:var(--ink-3); letter-spacing:.06em;
+}
+.head{position:absolute; top:-1px; bottom:-1px; width:2px; background:var(--ink); pointer-events:none}
+.head::after{
+  content:""; position:absolute; top:-4px; left:-4px; width:10px; height:10px;
+  background:var(--ink); border-radius:2px; transform:rotate(45deg);
+}
+
+/* ========================================================== RESUMEN ==== */
+.veil{
+  position:absolute; inset:0; z-index:5; display:none;
+  align-items:center; justify-content:center; padding:18px;
+  background:rgba(246,242,235,.93); backdrop-filter:blur(3px);
+}
+.veil.show{display:flex}
+.sum{
+  width:min(660px,100%); background:#fff; border:1px solid var(--line);
+  border-radius:var(--r-l); box-shadow:0 20px 50px -22px rgba(60,44,20,.5); overflow:hidden;
+}
+.sum-h{padding:16px 20px 13px; border-bottom:1px solid var(--line-2); border-left:5px solid var(--amber)}
+.sum-h h3{margin:0; font-family:var(--fd); font-weight:700; font-size:clamp(21px,2.4vw,29px);
+  letter-spacing:.02em; text-transform:uppercase}
+.sum-h p{margin:3px 0 0; font-size:12.5px; color:var(--ink-3)}
+.sum-g{display:grid; grid-template-columns:repeat(2,1fr); gap:2px 22px; padding:16px 20px}
+@media (min-width:520px){ .sum-g{grid-template-columns:repeat(4,1fr)} }
+.sum-g div{padding:8px 0}
+.sum-g span{display:block; font-size:9.6px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:600}
+.sum-g b{font-family:var(--fm); font-weight:600; font-size:clamp(18px,1.6vw,23px)}
+.sum-g b u{text-decoration:none; font-size:11.5px; color:var(--ink-3); margin-left:3px}
+.sum-a{
+  display:flex; align-items:flex-start; gap:11px; margin:0 20px 16px; padding:12px 14px;
+  background:#FDF3F1; border:1px solid #EFC9C2; border-radius:var(--r);
+}
+.sum-a i{width:11px;height:11px;border-radius:50%;background:var(--alert);flex:0 0 auto;margin-top:4px}
+.sum-a b{display:block; font-family:var(--fd); font-weight:700; font-size:17px;
+  letter-spacing:.03em; text-transform:uppercase; color:#8C2018}
+.sum-a p{margin:2px 0 0; font-size:12.5px; color:#8E4A40}
+.sum-f{display:flex; gap:10px; padding:0 20px 18px}
+
+/* ============================================================ FOOT ===== */
+.foot{
+  max-width:1920px; margin:0 auto; padding:4px var(--gutter) 22px;
+  font-size:11.5px; color:var(--ink-3); line-height:1.6;
+}
+.foot b{color:var(--ink-2); font-weight:600}
+
+@media (max-width:900px){
+  .rule{display:none}
+  .hd-well{margin-left:0; text-align:left; width:100%}
+  .hd-title{flex:1 1 100%}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <img id="logo" alt="Logotipo FLUGSA" src="data:image/png;base64,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">
+      <span class="brand-tx"><b>FLUGSA</b><span>Swabbing Operations</span></span>
+    </div>
+    <div class="rule" aria-hidden="true"></div>
+    <div class="hd-title">
+      <h1>Simulación Swabbing en pozos fuera del total de extracción en la CGSJ</h1>
+      <p>Recuperación De Petróleo con Herramienta Swab — Corte Esquemático</p>
+    </div>
+    <div class="hd-well">
+      <b>POZO LH-46 · BATERÍA LH-01</b>
+      <span>Casing 5½″ <i>·</i> Equipo 6-119 <i>·</i> Cisterna 4-325 <i>·</i> Repo 20 <i>·</i> 07/07/2026</span>
+    </div>
+  </div>
+</header>
+
+<main class="work">
+
+  <!-- ================================================== ESCENA ======== -->
+  <section class="card stage" aria-label="Corte esquemático del pozo y equipo de superficie">
+    <div class="stage-tag"><i></i>Vista de locación</div>
+
+    <svg id="scene" viewBox="0 0 900 920" role="img"
+         aria-label="Locación con equipo de pistoneo, cisterna y corte del pozo LH-46">
+      <defs>
+        <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0"    stop-color="#1E66B4"/>
+          <stop offset=".30"  stop-color="#488ED0"/>
+          <stop offset=".62"  stop-color="#8CBEE4"/>
+          <stop offset=".86"  stop-color="#C4DCEE"/>
+          <stop offset="1"    stop-color="#E0EAF0"/>
+        </linearGradient>
+        <radialGradient id="gSun" cx=".8" cy=".08" r=".55">
+          <stop offset="0" stop-color="#FFFAE2" stop-opacity=".85"/>
+          <stop offset="1" stop-color="#FFFAE2" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="gSoil" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#E0C698"/><stop offset=".3" stop-color="#C6A87A"/>
+          <stop offset="1" stop-color="#9C825C"/>
+        </linearGradient>
+        <linearGradient id="gRock" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0"   stop-color="#C8B08D"/><stop offset=".14" stop-color="#BA9F7C"/>
+          <stop offset=".30" stop-color="#CCB694"/><stop offset=".46" stop-color="#B49876"/>
+          <stop offset=".62" stop-color="#C4AC8A"/><stop offset=".76" stop-color="#AC9070"/>
+          <stop offset=".88" stop-color="#BEA482"/><stop offset="1"   stop-color="#8E7659"/>
+        </linearGradient>
+        <linearGradient id="gSteel" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#C6CEDA"/><stop offset=".34" stop-color="#96A2B2"/>
+          <stop offset="1" stop-color="#5C6878"/>
+        </linearGradient>
+        <linearGradient id="gCrude" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#221E1A"/><stop offset=".4" stop-color="#13100E"/>
+          <stop offset="1" stop-color="#070606"/>
+        </linearGradient>
+        <linearGradient id="gCrudeB" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#403A33"/><stop offset=".4" stop-color="#282320"/>
+          <stop offset="1" stop-color="#110F0D"/>
+        </linearGradient>
+        <linearGradient id="gWater" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#98D0EE"/><stop offset=".4" stop-color="#70B2D8"/>
+          <stop offset="1" stop-color="#448AB8"/>
+        </linearGradient>
+        <linearGradient id="gWaterB" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#C2E4F8"/><stop offset=".4" stop-color="#98CEEC"/>
+          <stop offset="1" stop-color="#66AAD4"/>
+        </linearGradient>
+        <clipPath id="clipBore"><rect x="335" y="196" width="30" height="714"/></clipPath>
+        <clipPath id="clipScene"><rect x="0" y="0" width="900" height="920"/></clipPath>
+      </defs>
+
+      <g clip-path="url(#clipScene)">
+        <!-- cielo y terreno -->
+        <rect x="0" y="0" width="900" height="196" fill="url(#gSky)"/>
+        <rect x="0" y="0" width="900" height="196" fill="url(#gSun)"/>
+        <path id="hillA" fill="#96A6B4" opacity=".62"/>
+        <path id="hillB" fill="#7E8874" opacity=".82"/>
+        <rect x="0" y="196" width="900" height="22" fill="url(#gSoil)"/>
+        <line x1="0" y1="196" x2="900" y2="196" stroke="#78603E" stroke-opacity=".65" stroke-width="1.3"/>
+        <g id="scrub"></g>
+
+        <!-- subsuelo -->
+        <rect x="0" y="196" width="900" height="720" fill="url(#gRock)"/>
+        <g id="lamin" stroke="#5C442C" fill="none"></g>
+        <rect id="aporteBand" x="0" width="900" fill="#C6944C" opacity=".34"/>
+        <g id="blobs"></g>
+
+        <!-- cemento y casing -->
+        <rect x="324" y="196" width="7" height="714" fill="#B2ADA3"/>
+        <rect x="369" y="196" width="7" height="714" fill="#B2ADA3"/>
+        <g id="cemHatch" stroke="#8E887C" stroke-opacity=".6" stroke-width="1"></g>
+        <rect x="335" y="196" width="30" height="714" fill="#F6F3EC"/>
+        <g id="fluid" clip-path="url(#clipBore)">
+          <rect id="colOil"   x="335" width="30" fill="url(#gCrude)"/>
+          <rect id="colWat"   x="335" width="30" fill="url(#gWater)"/>
+          <rect id="slugOil"  x="335" width="30" fill="url(#gCrudeB)"/>
+          <rect id="slugWat"  x="335" width="30" fill="url(#gWaterB)"/>
+          <line id="slugTop" x1="335" x2="365" stroke="#D6963E" stroke-width="2"/>
+        </g>
+        <rect x="331" y="196" width="4" height="714" fill="url(#gSteel)"/>
+        <rect x="365" y="196" width="4" height="714" fill="url(#gSteel)"/>
+        <g id="collars" fill="#9EAAB8"></g>
+        <path d="M331,899 H369 L365,911 H335 Z" fill="#606C7C"/>
+        <g id="perfs" stroke="#A05C18" stroke-width="1.6"></g>
+        <g id="inflow"></g>
+
+        <!-- regla de profundidad -->
+        <g id="ruler"></g>
+
+        <!-- cisterna -->
+        <g id="gTank">
+          <image id="imgTank" preserveAspectRatio="xMidYMax meet"
+                 href="https://i.ibb.co/27sjK070/4-325.png"/>
+          <g id="tankFallback" style="display:none">
+            <rect x="34" y="111" width="200" height="48" rx="24" fill="#C98F35" stroke="#5C4018"/>
+            <rect x="20" y="159" width="230" height="10" rx="3" fill="#8A6428"/>
+            <circle cx="82" cy="182" r="13" fill="#2A2828"/><circle cx="206" cy="182" r="13" fill="#2A2828"/>
+          </g>
+          <!-- fluido dentro del tanque, translúcido -->
+          <clipPath id="clipTankBody"><rect id="tankBodyR" x="0" y="0" width="0" height="0" rx="0"/></clipPath>
+          <g clip-path="url(#clipTankBody)">
+            <rect id="tankFill" x="0" y="0" width="0" height="0" fill="#0A0807" opacity=".60"/>
+            <rect id="tankGloss" x="0" y="0" width="0" height="0" fill="#8FA6B4" opacity=".10"/>
+          </g>
+          <line id="tankSurf" x1="0" y1="0" x2="0" y2="0" stroke="#D8B15C" stroke-width="1.8" opacity="0"/>
+          <g id="tankMarks"></g>
+          <text id="tankLbl" x="0" y="0" font-size="15" font-weight="700" fill="#0B0B0C">CISTERNA 4-325 · 20 m³</text>
+          <text id="tankRead" x="0" y="0" font-size="21" text-anchor="end"
+                font-family="IBM Plex Mono, monospace" font-weight="600" fill="#0B0B0C">0,00 m³</text>
+        </g>
+
+        <!-- línea de descarga -->
+        <g id="gFlow">
+          <line x1="258" y1="118" x2="258" y2="179.5" stroke="#848C96" stroke-width="6"/>
+          <rect x="252" y="174.5" width="82" height="10" rx="2" fill="#848C96"/>
+          <rect x="252" y="174.5" width="82" height="3" fill="#D6DDE6" opacity=".7"/>
+          <rect x="284" y="184.5" width="8" height="11.5" fill="#7A7062"/>
+          <rect x="314" y="184.5" width="8" height="11.5" fill="#7A7062"/>
+          <line id="flowFluid" x1="252" y1="179.5" x2="334" y2="179.5" stroke="#14100E"
+                stroke-width="6.4" opacity="0"/>
+          <line id="flowDash" x1="252" y1="179.5" x2="334" y2="179.5" stroke="#EDE4D6"
+                stroke-width="3" stroke-dasharray="7 12" stroke-linecap="round" opacity="0"/>
+          <line id="flowDrop" x1="258" y1="179.5" x2="258" y2="120" stroke="#14100E"
+                stroke-width="4" opacity="0"/>
+        </g>
+
+        <!-- conjunto de boca de pozo -->
+        <g id="gStack" stroke="#3E4654" stroke-width="1">
+          <rect x="333" y="189" width="34" height="7" rx="2" fill="url(#gSteel)"/>
+          <rect x="337" y="183" width="26" height="6" rx="2" fill="url(#gSteel)"/>
+          <rect x="334" y="176" width="32" height="7" rx="2" fill="url(#gSteel)"/>
+          <rect x="336" y="169" width="28" height="7" rx="2" fill="url(#gSteel)"/>
+          <rect x="341.5" y="138" width="17" height="31" rx="2" fill="url(#gSteel)"/>
+          <rect x="343.5" y="131" width="13" height="7" rx="2" fill="url(#gSteel)"/>
+          <rect x="336" y="180.6" width="28" height="6.4" rx="1.5" fill="#AC3A30" stroke="none"/>
+          <rect x="340" y="183" width="20" height="6" rx="1.5" fill="#AC3A30" stroke="none"/>
+          <circle cx="326" cy="179.5" r="5.5" fill="none" stroke="#AC3A30" stroke-width="2"/>
+          <circle cx="330" cy="186"   r="5"   fill="none" stroke="#AC3A30" stroke-width="2"/>
+          <rect x="341" y="145" width="18" height="2.6" fill="#A8B2BE" stroke="none"/>
+          <rect x="341" y="156" width="18" height="2.6" fill="#A8B2BE" stroke="none"/>
+        </g>
+
+        <!-- poleas + cable -->
+        <g id="gCable">
+          <rect x="373" y="189" width="26" height="7" rx="2" fill="#68604F"/>
+          <rect x="383" y="178" width="6" height="12" fill="#78705C"/>
+          <path id="cablePath" fill="none" stroke="#2E343E" stroke-width="3.4" stroke-linecap="round"/>
+          <path id="cableCore" fill="none" stroke="#A8B0BE" stroke-width="1.5" stroke-linecap="round"/>
+          <path id="cableMarks" fill="none" stroke="#5F6165" stroke-width="2.4"
+                stroke-dasharray="3 30" stroke-linecap="round" opacity="0"/>
+          <circle cx="386" cy="178" r="8"  fill="#707A8A" stroke="#3E4654" stroke-width="1.4"/>
+          <circle cx="386" cy="178" r="2.6" fill="#CED4DE"/>
+          <circle cx="364" cy="114" r="14" fill="#707A8A" stroke="#3E4654" stroke-width="1.5"/>
+          <circle cx="364" cy="114" r="3.1" fill="#CED4DE"/>
+          <line id="cableWell" x1="350" y1="196" x2="350" y2="196" stroke="#3A404C" stroke-width="1.8"/>
+        </g>
+
+        <!-- equipo -->
+        <g id="gRig">
+          <image id="imgRig" preserveAspectRatio="xMidYMax meet"
+                 href="https://i.ibb.co/fGtNdJJt/6-119-modificado.png"/>
+          <g id="rigFallback" style="display:none">
+            <rect x="590" y="132" width="180" height="40" rx="4" fill="#C98F35" stroke="#5C4018"/>
+            <rect x="760" y="112" width="70" height="60" rx="5" fill="#C98F35" stroke="#5C4018"/>
+            <circle cx="640" cy="184" r="12" fill="#2A2828"/><circle cx="726" cy="184" r="12" fill="#2A2828"/>
+            <circle cx="796" cy="184" r="12" fill="#2A2828"/>
+          </g>
+        </g>
+        <g id="smoke"></g>
+
+        <!-- operarios y conos -->
+        <g id="crew"></g>
+
+        <!-- herramienta -->
+        <g id="gTool"></g>
+
+        <!-- acotaciones -->
+        <g id="dimRig">
+          <line x1="374" y1="120" x2="586" y2="120" stroke="#3B372F" stroke-opacity=".75" stroke-width="1.2"/>
+          <line x1="374" y1="114" x2="374" y2="126" stroke="#3B372F" stroke-opacity=".75" stroke-width="1.2"/>
+          <line x1="586" y1="114" x2="586" y2="126" stroke="#3B372F" stroke-opacity=".75" stroke-width="1.2"/>
+          <rect x="428" y="103" width="104" height="34" rx="9" fill="#FFFDF8" stroke="#DCD2C0" stroke-width="1.2"/>
+          <text x="480" y="119" text-anchor="middle" font-size="19" font-weight="700" fill="#0B0B0C">15 m</text>
+          <text x="480" y="131" text-anchor="middle" font-size="10.5" fill="#7C7466">equipo → boca de pozo</text>
+        </g>
+
+        <g id="chips"></g>
+
+        <g id="alertCut" style="display:none">
+          <rect x="404" y="40" width="196" height="46" rx="10" fill="#FDF3F1" stroke="#BC362A" stroke-width="1.8"/>
+          <circle id="alertDot" cx="424" cy="57" r="6.5" fill="#BC362A"/>
+          <text x="438" y="61" font-size="15" font-weight="700" fill="#8C2018">CORTE DE AGUA</text>
+          <text id="alertSub" x="416" y="77" font-size="11" fill="#A8564A">agua 0,0 % · fin de operación</text>
+        </g>
+      </g>
+    </svg>
+
+    <div class="veil" id="veil" role="dialog" aria-modal="false" aria-labelledby="sumTitle">
+      <div class="sum">
+        <div class="sum-h">
+          <h3 id="sumTitle">Resumen de la operación</h3>
+          <p>FLUGSA · Pozo LH-46 · Batería LH-01 · 07/07/2026 · Equipo 6-119</p>
+        </div>
+        <div class="sum-g" id="sumGrid"></div>
+        <div class="sum-a">
+          <i></i>
+          <div>
+            <b>Finalización: corta por agua</b>
+            <p id="sumAlert"></p>
+          </div>
+        </div>
+        <div class="sum-f">
+          <button class="btn pri" id="againBtn" type="button">Repetir simulación</button>
+          <button class="btn" id="closeSum" type="button">Ver la locación</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================ TELEMETRÍA ====== -->
+  <div style="display:grid;gap:var(--gutter);align-content:start">
+
+    <section class="card">
+      <div class="card-h"><h2>Estado de la operación</h2><em id="speedTag">×1</em></div>
+      <div class="card-b">
+        <div class="state">
+          <div><span>Tiempo simulado</span><b id="vTime">0 h 00 min</b><em id="vComp"></em></div>
+          <div><span>Carrera</span><b id="vRun">1 / 6</b><em>25 min por ciclo</em></div>
+          <div><span>Método</span><i>Swab · casing 5½″</i><em>1 copa · cable 9/16″</em></div>
+        </div>
+        <div class="phase"><i id="phDot"></i><b id="phName">Preparación</b></div>
+        <p class="phase-d" id="phDesc"></p>
+        <div class="pills" id="pills"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Lecturas en tiempo real</h2></div>
+      <div class="card-b"><div class="kpis" id="kpis"></div></div>
+    </section>
+
+    <section class="card" id="cardTool">
+      <div class="card-h"><h2>Herramienta swab</h2><em id="toolMode">bajada</em></div>
+      <div class="card-b">
+        <svg id="toolSvg" viewBox="0 0 320 300" role="img" aria-label="Detalle de la herramienta swab">
+          <defs>
+            <linearGradient id="gT1" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#C6CEDA"/><stop offset=".35" stop-color="#96A2B2"/>
+              <stop offset="1" stop-color="#5C6878"/>
+            </linearGradient>
+            <clipPath id="clipT"><rect id="ctR" x="118" y="26" width="84" height="250"/></clipPath>
+          </defs>
+          <g id="tDet"></g>
+        </svg>
+        <p class="tool-cap" id="toolCap"></p>
+      </div>
+    </section>
+  </div>
+
+  <!-- =================================================== GRÁFICOS ===== -->
+  <div style="display:grid;gap:var(--gutter);align-content:start">
+
+    <section class="card">
+      <div class="card-h"><h2>Perfil profundidad · tiempo</h2><em>bajada · inmersión · izaje</em></div>
+      <div class="card-b">
+        <svg id="chart" viewBox="0 0 520 190" role="img" aria-label="Perfil de profundidad de la herramienta en el tiempo">
+          <defs><clipPath id="clipCh"><rect id="chReveal" x="52" y="6" width="0" height="146"/></clipPath></defs>
+          <g id="chGrid"></g>
+          <g id="chPaths" clip-path="url(#clipCh)" fill="none" stroke-width="2.6"
+             stroke-linecap="round" stroke-linejoin="round"></g>
+          <line id="chContact" x1="52" x2="512" stroke="#2A7CB0" stroke-width="1.2"
+                stroke-dasharray="5 5" opacity=".8"/>
+          <text id="chContactL" x="512" text-anchor="end" font-size="11" fill="#2A7CB0">contacto petróleo–agua</text>
+          <circle id="chHead" r="5.5" fill="#1D6FB8" stroke="#fff" stroke-width="2" opacity="0"/>
+          <text x="52" y="182" font-size="11" fill="#7C7466">inicio</text>
+          <text x="512" y="182" font-size="11" fill="#7C7466" text-anchor="end">tiempo de operación →</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h2>Volumen por carrera</h2><em>m³</em></div>
+      <div class="card-b">
+        <div class="bars" id="bars"></div>
+        <div class="prog">
+          <span>Progreso</span>
+          <div class="prog-t"><div class="prog-f" id="progF"></div></div>
+          <b id="progV">0,00 / 6,00 m³</b>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ============================================================ DOCK === -->
+<div class="dock">
+  <div class="dock-in">
+    <div class="btns">
+      <button class="btn pri" id="playBtn" type="button" aria-label="Reproducir la simulación">
+        <svg viewBox="0 0 24 24" id="playIco"><path d="M8 5v14l11-7z"/></svg><span id="playTx">Iniciar</span>
+      </button>
+      <button class="btn" id="resetBtn" type="button" aria-label="Volver al inicio">
+        <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>Reiniciar
+      </button>
+      <button class="btn" id="soundBtn" type="button" aria-pressed="false" aria-label="Activar el sonido del equipo">
+        <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 5V4L8 9H4z"/></svg>Sonido
+      </button>
+    </div>
+    <div class="seg" role="group" aria-label="Velocidad de reproducción">
+      <button type="button" data-sp="0.5" aria-pressed="false">0,5×</button>
+      <button type="button" data-sp="1"   aria-pressed="true">1×</button>
+      <button type="button" data-sp="2"   aria-pressed="false">2×</button>
+    </div>
+    <div class="track-wrap">
+      <div class="track-top"><span>Línea de tiempo de la operación</span><b id="trackTx">C-1 · Bajada</b></div>
+      <div class="track" id="track" role="slider" tabindex="0" aria-label="Posición en la operación"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="lane" id="lane"></div>
+        <svg class="trace" id="trace" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+          <polyline id="traceLine" fill="none" stroke="#0B0B0C" stroke-opacity=".38" stroke-width="2"/>
+        </svg>
+        <div class="divs" id="divs"></div>
+        <div class="head" id="head" style="left:0"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="foot">
+  Volumen de carrera = sumergencia × capacidad del casing 5½″ (ID 4,950″ ≈ 12,4 L/m).
+  Parte del 07/07/2026: <b>6 carreras · 6 m³ · nivel 800 → 1.050 m · cierre por corte de agua</b>.
+  Punzados, profundidad final y contacto petróleo–agua no relevados en el parte: representación esquemática.
+  Tiempo comprimido respecto de la operación real.
+</p>
+
+<script>
+(function(){
+"use strict";
+
+/* =====================================================================
+   CONFIGURACIÓN DE LAS IMÁGENES REALES
+   Si el tractor o la cisterna miran hacia el lado contrario, poné
+   flip:true. Ajustá x / w / h para reencuadrar sin tocar nada más.
+   ===================================================================== */
+const RIG  = { x:590, w:240, ar:1172/479, flip:false, sink:9,
+               drum:{fx:0.055, fy:0.50},     // salida del cable: trasera, altura media
+               exhaust:{fx:0.72, fy:0.13} }; // boca del caño de escape
+const TANK = { x:14, w:252, ar:1197/480, flip:false, sink:9,
+               // cuerpo del tanque dentro de la foto (fracciones del cuadro)
+               body:{fx0:0.085, fx1:0.878, fy0:0.155, fy1:0.635},
+               tyreTop:0.76 };               // altura de las cubiertas (fracción)
+// dir: +1 mira a la derecha, -1 mira a la izquierda. Ambos miran al pozo (x=350).
+// h = altura del operario en px (cintura ≈ tope de las cubiertas de la cisterna).
+// dir: +1 mira a la derecha, -1 mira a la izquierda. Ambos miran al pozo (x=350).
+const CREW = { h:52,
+               men:[{x:272, dir:1}] };                   // junto a la cisterna, mirando al pozo
+// sink = píxeles que la foto se hunde bajo la línea de terreno, para que las
+// cubiertas apoyen a ras y no queden flotando sobre el suelo.
+RIG.h  = RIG.w / RIG.ar;   RIG.y  = 196 + RIG.sink  - RIG.h;
+TANK.h = TANK.w / TANK.ar; TANK.y = 196 + TANK.sink - TANK.h;
+
+/* ========================================================== MODELO ==== */
+const CAP=12.4, SUMERG=1000/CAP, NIV_INI=800, PROF_FIN=1050, NC=6;
+const CORTE_D=1020, CONT_INI=1110, CONT_FIN=1063, ZAP=1180, PT=1200;
+const V_B=2.2, V_I=1.3, V_Z=1.25, CICLO=1500;
+const PRODUCTIVO=[1108,1152];
+
+const CARRERAS=[];
+const nfin=PROF_FIN-SUMERG;
+for(let i=0;i<NC;i++){
+  const niv=NIV_INI+(nfin-NIV_INI)*i/(NC-1), prof=niv+SUMERG;
+  CARRERAS.push({niv:niv, prof:prof, agua:Math.max(0,prof-Math.max(niv,CORTE_D))});
+}
+const VOLS   = CARRERAS.map(()=>SUMERG*CAP/1000);
+const VOLS_W = CARRERAS.map(c=>c.agua*CAP/1000);
+const VOL_TOTAL = VOLS.reduce((a,b)=>a+b,0);
+const VOL_AGUA  = VOLS_W.reduce((a,b)=>a+b,0);
+const PCT_AGUA  = 100*VOL_AGUA/VOL_TOTAL;
+
+const ORDER=['BAJADA','INMERSION','IZAJE','DESCARGA','AFLUENCIA'];
+const ANIM ={BAJADA:2.5, INMERSION:0.7, IZAJE:3.1, DESCARGA:1.0, AFLUENCIA:0.5};
+const SHORT={BAJADA:'Bajada', INMERSION:'Inmersión', IZAJE:'Izaje',
+             DESCARGA:'Descarga', AFLUENCIA:'Afluencia'};
+const INFO={
+  BAJADA:['Bajada · RIH',['Descenso de la herramienta por el interior del casing 5½″',
+                          'hasta alcanzar el nivel de fluido.']],
+  INMERSION:['Inmersión',['La copa se pliega y deja pasar el fluido:',
+                          'la herramienta penetra 80 m dentro de la columna.']],
+  IZAJE:['Izaje · POOH',['La copa sella contra el casing y eleva',
+                         'la columna de fluido hacia la superficie.']],
+  DESCARGA:['Descarga y registro',['El fluido sale por la tee hacia la línea',
+                                   'y se mide el volumen en la cisterna 4-325.']],
+  AFLUENCIA:['Afluencia del reservorio',['El pozo aporta desde la formación y el nivel',
+                                         'de fluido se recupera parcialmente.']]
+};
+const PHC={BAJADA:'#1D6FB8', INMERSION:'#6D4AA8', IZAJE:'#5F6165',
+           DESCARGA:'#27763D', AFLUENCIA:'#0D7A7A'};
+
+const SEGS=[]; let T=0, TS=0;
+for(let i=0;i<NC;i++){
+  const c=CARRERAS[i], last=(i===NC-1);
+  const mov=c.niv/V_B + SUMERG/V_I + c.prof/V_Z;
+  const rest=Math.max(120, CICLO-mov);
+  const real={BAJADA:c.niv/V_B, INMERSION:SUMERG/V_I, IZAJE:c.prof/V_Z,
+              DESCARGA:last?rest:rest*0.32, AFLUENCIA:last?0:rest*0.68};
+  for(const ph of ORDER){
+    if(last && ph==='AFLUENCIA') continue;
+    const dur=ANIM[ph]+((last&&ph==='DESCARGA')?1.8:0);
+    SEGS.push({ph:ph, t0:T, t1:T+dur, i:i, ts0:TS, dsim:real[ph]});
+    T+=dur; TS+=real[ph];
+  }
+}
+const TOTAL_T=T, TOTAL_SIM=TS;
+const CAUDAL=VOL_TOTAL/(TOTAL_SIM/3600);
+
+const RAMP=0.12, RAMP_Z=0.07, QB=0.60;
+const cl=(v,a=0,b=1)=>v<a?a:(v>b?b:v);
+const ease=t=>{t=cl(t); return t*t*(3-2*t);};
+function tz(x,r){ x=cl(x);
+  let p; if(x<=r) p=x*x/(2*r);
+  else if(x<1-r) p=r/2+(x-r);
+  else {const u=x-(1-r); p=r/2+(1-2*r)+(u-u*u/(2*r));}
+  return p/(1-r);
+}
+function tzv(x,r){ x=cl(x); if(x<=r) return x/r; if(x<1-r) return 1; return (1-x)/r; }
+
+function state(t){
+  t=cl(t,0,TOTAL_T-1e-4);
+  let s=SEGS[SEGS.length-1];
+  for(const g of SEGS){ if(t>=g.t0 && t<g.t1){ s=g; break; } }
+  const pt=(t-s.t0)/Math.max(1e-6,s.t1-s.t0);
+  const c=CARRERAS[s.i], N=c.niv, P=c.prof, WLEN=c.agua, S=SUMERG, last=(s.i===NC-1);
+  const st={phase:s.ph, carrera:s.i+1, tool:0, niv:N, colTop:N, slug:null, slugW:0,
+            volC:0, volW:0, vcab:0, tsim:s.ts0+s.dsim*pt, sumerg:0, flow:0,
+            inflow:0, dir:0, contacto:CONT_INI, done:false,
+            volPrev:VOLS.slice(0,s.i).reduce((a,b)=>a+b,0),
+            volwPrev:VOLS_W.slice(0,s.i).reduce((a,b)=>a+b,0)};
+
+  if(s.ph==='BAJADA'){
+    st.tool=N*tz(pt,RAMP); st.vcab=V_B*tzv(pt,RAMP)/(1-RAMP); st.dir=1;
+  } else if(s.ph==='INMERSION'){
+    st.tool=N+S*tz(pt,RAMP); st.vcab=V_I*tzv(pt,RAMP)/(1-RAMP);
+    st.sumerg=st.tool-N; st.dir=1;
+  } else if(s.ph==='IZAJE'){
+    const qb=(P-S)/P; let q,u;
+    if(pt<=QB){ u=pt/QB; q=qb*tz(u,RAMP_Z); }
+    else { u=(pt-QB)/(1-QB); q=qb+(1-qb)*tz(u,RAMP_Z); }
+    st.tool=P*(1-q); st.vcab=V_Z*tzv(u,RAMP_Z)/(1-RAMP_Z);
+    st.tsim=s.ts0+s.dsim*q; st.dir=-1; st.sumerg=S; st.niv=P; st.colTop=P;
+    const top=Math.max(0,st.tool-S);
+    st.slug=[top,st.tool]; st.slugW=Math.min(WLEN, st.tool-top);
+    const desc=S-(st.tool-top);
+    st.volC=desc*CAP/1000;
+    st.volW=Math.max(0,desc-(S-WLEN))*CAP/1000;
+    st.flow=cl(desc/3);
+  } else if(s.ph==='DESCARGA'){
+    st.niv=st.colTop=P; st.sumerg=S; st.volC=VOLS[s.i]; st.volW=VOLS_W[s.i];
+    st.flow=Math.max(0,1-pt/0.55);
+  } else if(s.ph==='AFLUENCIA'){
+    const nx=CARRERAS[s.i+1].niv;
+    st.niv=st.colTop=P+(nx-P)*ease(pt); st.sumerg=S;
+    st.volC=VOLS[s.i]; st.volW=VOLS_W[s.i]; st.inflow=1;
+  }
+  if(s.ph!=='IZAJE') st.colTop=st.niv;
+  if(s.ph==='IZAJE' && last) st.contacto=CONT_INI+(CONT_FIN-CONT_INI)*ease((pt-0.52)/0.48);
+  else if(s.ph==='DESCARGA' && last) st.contacto=CONT_FIN;
+  st.volT=st.volPrev+st.volC;
+  st.volwT=st.volwPrev+st.volW;
+  st.corte=(st.volW>0.004);
+  st.done=(t>=TOTAL_T-1e-3);
+  return st;
+}
+
+/* ========================================================= FORMATO ==== */
+const nf=(v,d)=>Number(v).toLocaleString('es-AR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});
+const hm=s=>Math.floor(s/3600)+' h '+String(Math.floor((s%3600)/60)).padStart(2,'0')+' min';
+const SVGNS='http://www.w3.org/2000/svg';
+function el(tag,attrs,parent){
+  const n=document.createElementNS(SVGNS,tag);
+  for(const k in attrs) n.setAttribute(k,attrs[k]);
+  if(parent) parent.appendChild(n);
+  return n;
+}
+function fillH(f){                    // fracción de volumen → fracción de altura
+  f=cl(f); let lo=0, hi=1;
+  for(let i=0;i<26;i++){
+    const m=(lo+hi)/2, th=2*Math.acos(Math.max(-1,Math.min(1,1-2*m)));
+    if((th-Math.sin(th))/(2*Math.PI)<f) lo=m; else hi=m;
+  }
+  return (lo+hi)/2;
+}
+function rng32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296; }; }
+
+/* ======================================================= GEOMETRÍA ==== */
+const GY=196, MPX=0.6, WX=350, RI=15, RO=19, RCEM=26, RULER=82;
+const d2y=d=>GY+d*MPX;
+const $=id=>document.getElementById(id);
+
+/* ==================================================== ESCENA (init) === */
+function buildScene(){
+  const r=rng32(7);
+
+  // cerros
+  let a='M0,196', b='M0,196';
+  for(let x=0;x<=900;x+=7){
+    a+=' L'+x+','+(GY-74+26*Math.sin(x/190+1.2)+11*Math.sin(x/68+2.4)).toFixed(1);
+  }
+  a+=' L900,196 Z'; $('hillA').setAttribute('d',a);
+  for(let x=0;x<=900;x+=6){
+    b+=' L'+x+','+(GY-34+15*Math.sin(x/110+0.4)+6*Math.sin(x/40+1.9)).toFixed(1);
+  }
+  b+=' L900,196 Z'; $('hillB').setAttribute('d',b);
+
+  // matas
+  const sc=$('scrub');
+  for(let i=0;i<90;i++){
+    const bx=r()*900, h=4+r()*7;
+    for(let k=0;k<4;k++)
+      el('line',{x1:bx.toFixed(1),y1:GY,x2:(bx+(r()-.5)*8).toFixed(1),y2:(GY-h).toFixed(1),
+                 stroke:'#76804E','stroke-opacity':(.35+r()*.4).toFixed(2),'stroke-width':1},sc);
+  }
+
+  // laminaciones
+  const lm=$('lamin');
+  for(let i=0;i<150;i++){
+    const y=d2y(20+r()*(PT-40)), x=r()*760, w=50+r()*230;
+    el('line',{x1:x.toFixed(1),y1:y.toFixed(1),x2:(x+w).toFixed(1),y2:(y+(r()-.5)*3).toFixed(1),
+               'stroke-opacity':(0.10+r()*0.16).toFixed(2),'stroke-width':1},lm);
+  }
+
+  // intervalo de aporte + manchas irregulares
+  const ay0=d2y(PRODUCTIVO[0]-42), ay1=d2y(PRODUCTIVO[1]+42);
+  const ab=$('aporteBand'); ab.setAttribute('y',ay0); ab.setAttribute('height',ay1-ay0);
+  const bl=$('blobs');
+  function blob(cx,cy,rad,fill,op){
+    let p='', n=8;
+    for(let q=0;q<n;q++){
+      const ang=2*Math.PI*q/n+(r()-.5)*0.6, rr=rad*(0.42+r()*1.13);
+      p+=(q?' L':'M')+(cx+rr*Math.cos(ang)).toFixed(1)+','+(cy+rr*Math.sin(ang)*0.62).toFixed(1);
+    }
+    el('path',{d:p+' Z',fill:fill,'fill-opacity':op.toFixed(2)},bl);
+  }
+  for(let i=0;i<620;i++) blob(r()*900, ay0+r()*(ay1-ay0), 1.1+r()*1.2,'#96601F',0.30+r()*0.35);
+  for(let i=0;i<900;i++) blob(r()*900, ay0+r()*(ay1-ay0), 1.5+r()*3.1,'#0F0D0B',0.52+r()*0.42);
+  for(let i=0;i<170;i++) blob(r()*900, ay0+r()*(ay1-ay0), 1.0+r()*1.6,'#4290C6',0.50+r()*0.38);
+
+  // cemento rayado
+  const ch=$('cemHatch');
+  for(let y=GY;y<d2y(1190);y+=9){
+    el('line',{x1:325,y1:y,x2:330,y2:y+4},ch);
+    el('line',{x1:370,y1:y,x2:375,y2:y+4},ch);
+  }
+  // cuplas
+  const co=$('collars');
+  for(let d=70;d<ZAP;d+=74){
+    const y=d2y(d);
+    el('rect',{x:329,y:(y-2.4).toFixed(1),width:8,height:4.8},co);
+    el('rect',{x:363,y:(y-2.4).toFixed(1),width:8,height:4.8},co);
+  }
+  // punzados
+  const pf=$('perfs');
+  for(let i=0;i<8;i++){
+    const y=d2y(PRODUCTIVO[0]+(PRODUCTIVO[1]-PRODUCTIVO[0])*(i+0.5)/8);
+    el('line',{x1:335,y1:y.toFixed(1),x2:317,y2:y.toFixed(1)},pf);
+    el('line',{x1:365,y1:y.toFixed(1),x2:383,y2:y.toFixed(1)},pf);
+  }
+  // flechas de aporte
+  const inf=$('inflow'); inf.setAttribute('opacity','0');
+  for(let i=0;i<6;i++){
+    const y=d2y(PRODUCTIVO[0]+(PRODUCTIVO[1]-PRODUCTIVO[0])*(i+0.5)/6);
+    el('path',{d:'M0,0',fill:'none',stroke:'#9C5410','stroke-width':1.8,'stroke-linecap':'round',
+               class:'iarr','data-y':y.toFixed(1),'data-s':'-1'},inf);
+    el('path',{d:'M0,0',fill:'none',stroke:'#9C5410','stroke-width':1.8,'stroke-linecap':'round',
+               class:'iarr','data-y':y.toFixed(1),'data-s':'1'},inf);
+  }
+
+  // regla de profundidad
+  const ru=$('ruler');
+  el('line',{x1:RULER,y1:GY,x2:RULER,y2:d2y(PT),stroke:'#9C8C70','stroke-width':1.2},ru);
+  for(let d=0;d<=PT;d+=100){
+    const y=d2y(d), maj=(d%200===0);
+    el('line',{x1:RULER,y1:y,x2:RULER+(maj?12:7),y2:y,stroke:maj?'#3B372F':'#9C8C70',
+               'stroke-width':maj?1.4:1},ru);
+    if(maj) el('text',{x:RULER-10,y:y+7,'text-anchor':'end','font-size':19,'font-weight':600,
+                       fill:'#0B0B0C','font-family':'IBM Plex Mono, monospace'},ru).textContent=nf(d);
+  }
+  el('text',{x:RULER+16,y:GY+24,'font-size':17,'font-weight':700,fill:'#0B0B0C'},ru)
+    .textContent='PROFUNDIDAD (m)';
+  el('text',{x:326,y:d2y(ZAP)+18,'text-anchor':'end','font-size':13,'font-weight':500,fill:'#3B372F'},ru)
+    .textContent='ZAPATO DE CASING 5½″';
+
+  // operarios y conos
+  const cr=$('crew');
+  const H=CREW.h, BLUE='#1B3557', BLUE_D='#12253E', WHITE='#F4F6F8', SKIN='#E4C09A';
+  CREW.men.forEach(function(m){
+    const g=el('g',{transform:'translate('+m.x.toFixed(1)+',0) scale('+m.dir+',1)'},cr);
+    const hip=GY-0.47*H, sho=GY-0.795*H, hd=GY-0.885*H, r=0.063*H;
+    // piernas: la de adelante adelantada en el sentido de la mirada
+    [[-1,0.030],[1,0.070]].forEach(function(p){
+      const s2=p[0], adv=p[1]*H;
+      el('line',{x1:(s2*0.048*H).toFixed(2),y1:hip.toFixed(1),
+                 x2:(s2*0.052*H+adv).toFixed(2),y2:(GY-0.05*H).toFixed(1),
+                 stroke:BLUE_D,'stroke-width':(0.082*H).toFixed(2),'stroke-linecap':'butt'},g);
+      el('rect',{x:(s2*0.052*H+adv-0.052*H).toFixed(2),y:(GY-0.05*H).toFixed(1),
+                 width:(0.128*H).toFixed(2),height:(0.05*H).toFixed(2),rx:2,fill:'#23262B'},g);
+    });
+    // torso
+    el('path',{d:'M'+(-0.115*H)+','+sho+' L'+(0.118*H)+','+sho+
+                 ' L'+(0.100*H)+','+hip+' L'+(-0.098*H)+','+hip+' Z',fill:BLUE},g);
+    el('rect',{x:(-0.112*H).toFixed(2),y:(sho+0.115*H).toFixed(2),
+               width:(0.226*H).toFixed(2),height:(0.030*H).toFixed(2),
+               fill:'#E9F04A','fill-opacity':.92},g);
+    el('rect',{x:(-0.104*H).toFixed(2),y:(hip-0.075*H).toFixed(2),
+               width:(0.208*H).toFixed(2),height:(0.028*H).toFixed(2),
+               fill:'#E9F04A','fill-opacity':.85},g);
+    // brazos: el del frente apunta hacia el pozo
+    el('line',{x1:(-0.100*H).toFixed(2),y1:(sho+0.03*H).toFixed(2),
+               x2:(-0.132*H).toFixed(2),y2:(hip+0.055*H).toFixed(2),
+               stroke:BLUE_D,'stroke-width':(0.060*H).toFixed(2),'stroke-linecap':'round'},g);
+    el('line',{x1:(0.104*H).toFixed(2),y1:(sho+0.03*H).toFixed(2),
+               x2:(0.176*H).toFixed(2),y2:(sho+0.175*H).toFixed(2),
+               stroke:BLUE,'stroke-width':(0.062*H).toFixed(2),'stroke-linecap':'round'},g);
+    el('circle',{cx:(0.186*H).toFixed(2),cy:(sho+0.185*H).toFixed(2),
+                 r:(0.034*H).toFixed(2),fill:SKIN},g);
+    // cuello y cabeza, corridas hacia el frente
+    el('rect',{x:(-0.028*H).toFixed(2),y:(sho-0.035*H).toFixed(2),
+               width:(0.060*H).toFixed(2),height:(0.05*H).toFixed(2),fill:'#C79A72'},g);
+    const hx=0.020*H;
+    el('circle',{cx:hx.toFixed(2),cy:hd.toFixed(1),r:r.toFixed(2),fill:SKIN},g);
+    el('path',{d:'M'+(hx+r*0.62)+','+(hd+r*0.10)+' L'+(hx+r*1.06)+','+(hd+r*0.24)+
+                 ' L'+(hx+r*0.62)+','+(hd+r*0.42)+' Z',fill:SKIN},g);   // nariz
+    // casco blanco con visera hacia adelante
+    el('path',{d:'M'+(hx-r*1.14)+','+(hd-r*0.16)+
+                 ' A'+(r*1.14)+','+(r*1.20)+' 0 0 1 '+(hx+r*1.14)+','+(hd-r*0.16)+' Z',fill:WHITE},g);
+    el('path',{d:'M'+(hx-r*1.10)+','+(hd-r*0.30)+' L'+(hx+r*1.70)+','+(hd-r*0.34)+
+                 ' L'+(hx+r*1.70)+','+(hd-r*0.02)+' L'+(hx-r*1.10)+','+(hd+r*0.06)+' Z',fill:WHITE},g);
+    el('path',{d:'M'+(hx-r*0.34)+','+(hd-r*1.14)+' L'+(hx+r*0.30)+','+(hd-r*1.16),
+               stroke:'#CBD1D8','stroke-width':(r*0.30).toFixed(2)},g);
+  });
+  [430,500,570].forEach(function(cx){
+    el('path',{d:'M'+cx+','+(GY-16.5)+' L'+(cx-7.5)+','+GY+' L'+(cx+7.5)+','+GY+' Z',fill:'#E86022'},cr);
+    el('rect',{x:cx-9,y:GY-2.4,width:18,height:2.6,rx:1,fill:'#C24E18'},cr);
+    el('rect',{x:cx-5.4,y:GY-9,width:10.8,height:3,fill:'#FAFAFA'},cr);
+  });
+
+  // imágenes reales
+  const ir=$('imgRig'), it=$('imgTank');
+  // cuerpo del tanque + marcas de nivel
+  const bx0=TANK.x+TANK.w*TANK.body.fx0, bx1=TANK.x+TANK.w*TANK.body.fx1;
+  const by0=TANK.y+TANK.h*TANK.body.fy0, by1=TANK.y+TANK.h*TANK.body.fy1;
+  TANK.B={x0:bx0,x1:bx1,y0:by0,y1:by1,w:bx1-bx0,h:by1-by0};
+  const br=$('tankBodyR');
+  br.setAttribute('x',bx0.toFixed(1)); br.setAttribute('y',by0.toFixed(1));
+  br.setAttribute('width',(bx1-bx0).toFixed(1)); br.setAttribute('height',(by1-by0).toFixed(1));
+  br.setAttribute('rx',((by1-by0)/2).toFixed(1)); br.setAttribute('ry',((by1-by0)/2).toFixed(1));
+  const tm=$('tankMarks');
+  [5,10,15].forEach(function(v){
+    const y=by1-(by1-by0)*fillH(v/20);
+    el('line',{x1:(bx0-11).toFixed(1),y1:y.toFixed(1),x2:(bx0-3).toFixed(1),y2:y.toFixed(1),
+               stroke:'#6E6455','stroke-width':1.1},tm);
+    el('text',{x:(bx0-14).toFixed(1),y:(y+4).toFixed(1),'text-anchor':'end','font-size':11,
+               fill:'#6E6455','font-family':'IBM Plex Mono, monospace'},tm).textContent=v;
+  });
+  $('tankLbl').setAttribute('x',TANK.x); $('tankLbl').setAttribute('y',(TANK.y-26).toFixed(1));
+  $('tankRead').setAttribute('x',(TANK.x+TANK.w).toFixed(1));
+  $('tankRead').setAttribute('y',(TANK.y-24).toFixed(1));
+  ir.setAttribute('x',RIG.x); ir.setAttribute('y',RIG.y);
+  ir.setAttribute('width',RIG.w); ir.setAttribute('height',RIG.h);
+  if(RIG.flip) ir.setAttribute('transform','translate('+(2*RIG.x+RIG.w)+',0) scale(-1,1)');
+  it.setAttribute('x',TANK.x); it.setAttribute('y',TANK.y);
+  it.setAttribute('width',TANK.w); it.setAttribute('height',TANK.h);
+  if(TANK.flip) it.setAttribute('transform','translate('+(2*TANK.x+TANK.w)+',0) scale(-1,1)');
+  ir.addEventListener('error',function(){ ir.style.display='none'; $('rigFallback').style.display=''; });
+  it.addEventListener('error',function(){ it.style.display='none'; $('tankFallback').style.display=''; });
+
+  // cable
+  const D={x:RIG.x+RIG.w*RIG.drum.fx, y:RIG.y+RIG.h*RIG.drum.fy};
+  const S={x:386,y:178,r:8};
+  const dx=S.x-D.x, dy=S.y-D.y, L=Math.hypot(dx,dy);
+  const off=Math.sqrt(Math.max(1,L*L-S.r*S.r));
+  const th=Math.atan2(dy,dx)+Math.asin(S.r/L);
+  const Tp={x:D.x+off*Math.cos(th), y:D.y+off*Math.sin(th)};
+  const dPath='M'+D.x.toFixed(1)+','+D.y.toFixed(1)+
+              ' L'+Tp.x.toFixed(1)+','+Tp.y.toFixed(1)+
+              ' A8,8 0 0 1 378,178 L378,114 A14,14 0 0 0 350,114 L350,131';
+  $('cablePath').setAttribute('d',dPath);
+  $('cableCore').setAttribute('d',dPath);
+  $('cableMarks').setAttribute('d',dPath);
+
+  // humo
+  const sm=$('smoke');
+  window.SMOKE=[];
+  for(let i=0;i<11;i++){
+    const c=el('circle',{r:3,fill:'#6E6C6A','fill-opacity':0},sm);
+    window.SMOKE.push(c);
+  }
+
+  // herramienta
+  const gt=$('gTool');
+  const mk=(t,a)=>el(t,a,gt);
+  mk('rect',{id:'tHalo',x:-9,y:-78,width:18,height:80,fill:'#3E4654','fill-opacity':0,rx:3});
+  mk('rect',{x:-3.6,y:-72,width:7.2,height:10,fill:'#606C7C',rx:1});
+  for(let k=0;k<3;k++) mk('circle',{cx:0,cy:-69.4+k*3,r:1.1,fill:'#2C323E'});
+  mk('rect',{x:-5.4,y:-62,width:10.8,height:30,fill:'#7E8896',rx:2});
+  mk('rect',{x:-5.4,y:-62,width:2.2,height:30,fill:'#E4EAF2','fill-opacity':.8,rx:1});
+  mk('rect',{x:-6.8,y:-34,width:13.6,height:5,fill:'#606A7A',rx:1});
+  mk('rect',{x:-4.4,y:-29,width:8.8,height:12,fill:'#58606E',rx:1});
+  for(let k=0;k<3;k++) mk('circle',{cx:0,cy:-26+k*4,r:1.2,fill:'#282E3A'});
+  mk('path',{id:'cupL',fill:'#2E2C2E'});
+  mk('path',{id:'cupR',fill:'#2E2C2E'});
+  mk('rect',{x:-4.6,y:-15,width:9.2,height:14,fill:'#262426',rx:2});
+  mk('line',{id:'cupSealL',x1:0,y1:0,x2:0,y2:0,stroke:'#E8AC54','stroke-width':2});
+  mk('line',{id:'cupSealR',x1:0,y1:0,x2:0,y2:0,stroke:'#E8AC54','stroke-width':2});
+  mk('rect',{x:-3.6,y:-1,width:7.2,height:1,fill:'#6C7482'});
+  mk('rect',{x:-5,y:-4,width:10,height:4,fill:'#505A68',rx:1});
+
+  // chips de acotación
+  const cp=$('chips');
+  window.CHIP={};
+  ['aporte','contact','level','depth'].forEach(function(k){
+    const g=el('g',{id:'chip_'+k},cp);
+    const rc=el('rect',{x:0,y:-17,width:10,height:34,rx:9,fill:'#FFFFFF','fill-opacity':.96,
+                        stroke:'#DCD2C0','stroke-width':1.4},g);
+    const bar=el('rect',{x:0,y:-17,width:4.5,height:34,rx:2,fill:'#B8722A'},g);
+    const tx=el('text',{x:16,y:5,'font-size':15,'font-weight':500,fill:'#0B0B0C'},g);
+    const sub=el('text',{x:16,y:30,'font-size':11.5,fill:'#3B372F'},g);
+    const dash=el('line',{stroke:'#B8722A','stroke-width':1.3,'stroke-dasharray':'5 4'},cp);
+    const dot=el('circle',{r:3.2,fill:'#B8722A'},cp);
+    window.CHIP[k]={g:g,rect:rc,bar:bar,tx:tx,sub:sub,dash:dash,dot:dot};
+  });
+  const A=window.CHIP.aporte;
+  A.tx.textContent='INTERVALO DE APORTE'; A.sub.textContent='profundidad esquemática';
+  A.sub.setAttribute('text-anchor','end');
+  window.CHIP.depth.bar.setAttribute('fill','#1D6FB8');
+  window.CHIP.depth.dash.setAttribute('stroke','#1D6FB8');
+  window.CHIP.depth.dot.setAttribute('fill','#1D6FB8');
+  window.CHIP.depth.tx.setAttribute('font-family','IBM Plex Mono, monospace');
+  window.CHIP.level.bar.setAttribute('fill','#0D7A7A');
+  window.CHIP.level.dash.setAttribute('stroke','#0D7A7A');
+  window.CHIP.level.dot.setAttribute('fill','#0D7A7A');
+  window.CHIP.contact.bar.setAttribute('fill','#2A7CB0');
+  window.CHIP.contact.dash.setAttribute('stroke','#2A7CB0');
+  window.CHIP.contact.dot.setAttribute('fill','#2A7CB0');
+  window.CHIP.contact.sub.textContent='interfase estimada';
+
+  // acotación fija del intervalo de aporte
+  const ya=d2y((PRODUCTIVO[0]+PRODUCTIVO[1])/2);
+  sizeChip(A,'INTERVALO DE APORTE',WX-RCEM-24,ya,'r');
+  A.dash.setAttribute('x1',WX-RCEM-7); A.dash.setAttribute('y1',ya);
+  A.dash.setAttribute('x2',WX-RCEM-22); A.dash.setAttribute('y2',ya);
+  A.dot.setAttribute('cx',WX-RCEM-7); A.dot.setAttribute('cy',ya);
+  A.sub.setAttribute('x',-14);
+}
+
+function sizeChip(c,text,x,y,align){
+  c.tx.textContent=text;
+  const w=c.tx.getComputedTextLength()+32;
+  const x0=(align==='r')?x-w:x;
+  c.rect.setAttribute('x',x0); c.rect.setAttribute('width',w);
+  c.bar.setAttribute('x',x0);
+  c.tx.setAttribute('x',x0+16);
+  if(c.sub.getAttribute('text-anchor')==='end') c.sub.setAttribute('x',x0+w-16);
+  else c.sub.setAttribute('x',x0+16);
+  c.g.setAttribute('transform','translate(0,'+y.toFixed(1)+')');
+  c.rect.setAttribute('y',-17); c.bar.setAttribute('y',-17);
+  return {x0:x0,w:w};
+}
+
+/* ============================================== PANEL (construcción) == */
+const KPI=[['Prof. herramienta','m','#1D6FB8'],['Nivel de fluido','m','#0D7A7A'],
+           ['Sumergencia','m','#6D4AA8'],['Vel. de cable','m/s','#7C7466'],
+           ['Vol. de carrera','m³','#5F6165'],['Vol. acumulado','m³','#14100E']];
+function buildPanel(){
+  const k=$('kpis');
+  KPI.forEach(function(d,i){
+    const w=document.createElement('div'); w.className='kpi'; w.style.setProperty('--kc',d[2]);
+    w.innerHTML='<span>'+d[0]+'</span><b id="k'+i+'">—</b><u>'+d[1]+'</u>';
+    k.appendChild(w);
+  });
+  const p=$('pills');
+  ORDER.forEach(function(ph){
+    const b=document.createElement('div'); b.className='pill'; b.id='pill_'+ph;
+    b.textContent=SHORT[ph]; p.appendChild(b);
+  });
+  const bs=$('bars');
+  for(let i=0;i<NC;i++){
+    const d=document.createElement('div'); d.className='bar';
+    d.innerHTML='<div class="bar-v" id="bv'+i+'">0,00</div>'+
+                '<div class="bar-t" id="bt'+i+'"><div class="bar-f"></div>'+
+                '<div class="bar-w" id="bw'+i+'"></div></div>'+
+                '<div class="bar-l">C-'+(i+1)+'</div>';
+    bs.appendChild(d);
+  }
+  // gráfico
+  const g=$('chGrid');
+  [0,600,1200].forEach(function(dv){
+    const y=6+146*dv/1200;
+    el('line',{x1:52,y1:y,x2:512,y2:y,stroke:'#E8E0D2','stroke-width':1,'stroke-dasharray':'4 5'},g);
+    el('text',{x:44,y:y+5,'text-anchor':'end','font-size':13,fill:'#7C7466',
+               'font-family':'IBM Plex Mono, monospace'},g).textContent=nf(dv);
+  });
+  el('text',{x:44,y:0,'font-size':12,fill:'#7C7466','text-anchor':'end'},g).textContent='';
+  el('line',{x1:52,y1:6,x2:52,y2:152,stroke:'#B6A88E'},g);
+  el('line',{x1:52,y1:152,x2:512,y2:152,stroke:'#B6A88E'},g);
+
+  // trazas del gráfico (completas, reveladas por clip)
+  const cp=$('chPaths'); let cur=null, pts=[];
+  const N=420;
+  for(let i=0;i<=N;i++){
+    const s=state(TOTAL_T*i/N);
+    const x=52+460*cl(s.tsim/TOTAL_SIM), y=6+146*cl(s.tool/1200);
+    if(s.phase!==cur){
+      if(pts.length>1) el('polyline',{points:pts.join(' '),stroke:PHC[cur]},cp);
+      pts=pts.length?[pts[pts.length-1]]:[]; cur=s.phase;
+    }
+    pts.push(x.toFixed(1)+','+y.toFixed(1));
+  }
+  if(pts.length>1) el('polyline',{points:pts.join(' '),stroke:PHC[cur]},cp);
+
+  // línea de tiempo (dock)
+  const lane=$('lane'), divs=$('divs');
+  SEGS.forEach(function(s,i){
+    const b=document.createElement('i');
+    b.style.flex=(s.t1-s.t0)+' 0 0'; b.style.background=PHC[s.ph];
+    b.id='lane'+i; lane.appendChild(b);
+    if(s.ph==='BAJADA'){
+      const u=document.createElement('u');
+      u.style.left=(100*s.t0/TOTAL_T)+'%'; u.setAttribute('data-c','C-'+(s.i+1));
+      divs.appendChild(u);
+    }
+  });
+  let tp=[];
+  for(let i=0;i<=300;i++){
+    const s=state(TOTAL_T*i/300);
+    tp.push((1000*i/300).toFixed(1)+','+(6+88*cl(s.tool/1200)).toFixed(1));
+  }
+  $('traceLine').setAttribute('points',tp.join(' '));
+
+  // resumen
+  const rows=[['Carreras','6',''],['Volumen recuperado',nf(VOL_TOTAL,2),'m³'],
+              ['Volumen por carrera',nf(VOL_TOTAL/6,2),'m³'],['Sumergencia',nf(SUMERG,0),'m'],
+              ['Nivel inicial',nf(NIV_INI,0),'m'],['Última carrera',nf(PROF_FIN,0),'m'],
+              ['Tiempo de operación',hm(TOTAL_SIM),''],['Caudal medio',nf(CAUDAL,2),'m³/h']];
+  $('sumGrid').innerHTML=rows.map(function(r){
+    return '<div><span>'+r[0]+'</span><b>'+r[1]+(r[2]?'<u>'+r[2]+'</u>':'')+'</b></div>';
+  }).join('');
+  $('sumAlert').textContent='Corte de agua detectado en superficie durante la 6ª carrera · '+
+    nf(PCT_AGUA,1)+' % de agua sobre el volumen recuperado.';
+}
+
+/* ============================================ DETALLE DE HERRAMIENTA == */
+let toolMode='';
+function drawToolDetail(mode,wfr){
+  if(mode===toolMode && mode!=='sello') return;
+  toolMode=mode;
+  const g=$('tDet'); while(g.firstChild) g.removeChild(g.firstChild);
+  const cx=145, ri=44, ro=58, ty0=20, ty1=282, ccy=176;
+  const mk=(t,a)=>el(t,a,g);
+
+  if(mode==='aporte'){
+    mk('rect',{x:cx-120,y:ty0,width:240,height:ty1-ty0,fill:'#B08E68'});
+    const r=rng32(21);
+    for(let i=0;i<260;i++)
+      mk('circle',{cx:(cx-120+r()*240).toFixed(1),cy:(ty0+r()*(ty1-ty0)).toFixed(1),
+                   r:(0.7+r()*1.7).toFixed(1),fill:'#0F0D0B','fill-opacity':(0.35+r()*0.45).toFixed(2)});
+    for(let i=0;i<60;i++)
+      mk('circle',{cx:(cx-120+r()*240).toFixed(1),cy:(ty0+r()*(ty1-ty0)).toFixed(1),
+                   r:(0.7+r()*1.3).toFixed(1),fill:'#4290C6','fill-opacity':(0.4+r()*0.4).toFixed(2)});
+    [-1,1].forEach(function(s){
+      mk('rect',{x:s>0?cx+ri:cx-ro,y:ty0,width:ro-ri,height:ty1-ty0,fill:'#7E8A9A'});
+      mk('rect',{x:s>0?cx+ro:cx-ro-12,y:ty0,width:12,height:ty1-ty0,fill:'#B2ADA3'});
+    });
+    mk('rect',{x:cx-ri,y:ty0,width:2*ri,height:ty1-ty0,fill:'#F6F3EC'});
+    const fy=ty1-(ty1-ty0)*0.42;
+    mk('rect',{x:cx-ri,y:fy,width:2*ri,height:ty1-fy,fill:'url(#gCrude)'});
+    mk('line',{x1:cx-ri,y1:fy,x2:cx+ri,y2:fy,stroke:'#D6963E','stroke-width':2});
+    for(let k=0;k<5;k++){
+      const y=ty0+34+k*48;
+      [-1,1].forEach(function(s){
+        mk('path',{d:'M'+(cx+s*ri)+','+(y-4)+' L'+(cx+s*(ro+13))+','+(y-1.5)+
+                     ' L'+(cx+s*(ro+13))+','+(y+1.5)+' L'+(cx+s*ri)+','+(y+4)+' Z',fill:'#5A5650'});
+        const g2=mk('g',{});
+        el('line',{x1:cx+s*(ro+30),y1:y,x2:cx+s*(ri+5),y2:y,stroke:'#9C5410',
+                   'stroke-width':2.1,'stroke-linecap':'round'},g2);
+        el('path',{d:'M'+(cx+s*(ri+13))+','+(y-5)+' L'+(cx+s*(ri+5))+','+y+
+                     ' L'+(cx+s*(ri+13))+','+(y+5),fill:'none',stroke:'#9C5410',
+                   'stroke-width':2.1,'stroke-linecap':'round'},g2);
+        el('animate',{attributeName:'opacity',values:'0.15;1;0.15',dur:'1.6s',
+                      begin:(k*0.16)+'s',repeatCount:'indefinite'},g2);
+      });
+    }
+    return;
+  }
+
+  const ri2=52, ro2=68;
+  mk('rect',{x:cx-ro2-12,y:ty0,width:2*(ro2+12),height:ty1-ty0,fill:'#F6F3EC'});
+  if(mode==='bypass') mk('rect',{x:cx-ri2,y:ty0,width:2*ri2,height:ty1-ty0,fill:'url(#gCrude)'});
+  if(mode==='sello'){
+    const hcol=ccy-30-ty0;
+    mk('rect',{x:cx-ri2,y:ty0,width:2*ri2,height:hcol,fill:'url(#gCrudeB)'});
+    if(wfr>0.02){
+      const hw=hcol*Math.min(0.55,wfr);
+      mk('rect',{x:cx-ri2,y:ccy-30-hw,width:2*ri2,height:hw,fill:'url(#gWaterB)'});
+      mk('line',{x1:cx-ri2,y1:ccy-30-hw,x2:cx+ri2,y2:ccy-30-hw,stroke:'#D6EFFC','stroke-width':1.6});
+    }
+    mk('line',{x1:cx-ri2,y1:ccy-30,x2:cx+ri2,y2:ccy-30,stroke:'#E8AC54','stroke-width':1.6});
+  }
+  [-1,1].forEach(function(s){
+    mk('rect',{x:s>0?cx+ri2:cx-ro2,y:ty0,width:ro2-ri2,height:ty1-ty0,fill:'url(#gT1)'});
+    mk('rect',{x:s>0?cx+ri2:cx-ri2-3,y:ty0,width:3,height:ty1-ty0,fill:'#DCE4EE','fill-opacity':.8});
+  });
+  // herramienta
+  mk('rect',{x:cx-10,y:ty0+10,width:20,height:46,fill:'#606C7C',rx:3});
+  for(let k=0;k<5;k++) mk('circle',{cx:cx,cy:ty0+17+k*8,r:2.6,fill:'#2C323E'});
+  mk('rect',{x:cx-16,y:ty0+56,width:32,height:ccy-78-(ty0+56),fill:'#7E8896',rx:4});
+  mk('rect',{x:cx-16,y:ty0+56,width:6,height:ccy-78-(ty0+56),fill:'#E4EAF2','fill-opacity':.85,rx:2});
+  mk('rect',{x:cx-20,y:ccy-82,width:40,height:10,fill:'#606A7A',rx:3});
+  mk('rect',{x:cx-13,y:ccy-72,width:26,height:42,fill:'#58606E',rx:2});
+  for(let k=0;k<3;k++) mk('circle',{cx:cx,cy:ccy-64+k*13,r:3.2,fill:'#282E3A'});
+  const hw={seco:40,bypass:32,sello:ri2-1}[mode];
+  [-1,1].forEach(function(s){
+    mk('path',{d:'M'+(cx+s*14)+','+(ccy+20)+' L'+(cx+s*hw)+','+(ccy-30)+
+                 ' L'+(cx+s*hw)+','+(ccy-16)+' L'+(cx+s*14)+','+(ccy+34)+' Z',fill:'#2E2C2E'});
+    mk('line',{x1:cx+s*14,y1:ccy+20,x2:cx+s*hw,y2:ccy-30,stroke:'#ACACB0','stroke-width':1.6});
+    if(mode==='sello')
+      mk('line',{x1:cx+s*hw,y1:ccy-30,x2:cx+s*hw,y2:ccy-16,stroke:'#E8AC54','stroke-width':2.8});
+    for(let k=0;k<6;k++){
+      const x=cx+s*(16+k*(hw-16)/6);
+      mk('line',{x1:x,y1:ccy-30+k*2.4,x2:x,y2:ccy-18+k*2.6,stroke:'#A2A2A6','stroke-width':1.3});
+    }
+  });
+  mk('rect',{x:cx-14,y:ccy-30,width:28,height:64,fill:'#262426',rx:4});
+  mk('rect',{x:cx-10,y:ccy+32,width:20,height:ty1-14-(ccy+32),fill:'#6C7482',rx:3});
+  // flechas de flujo
+  const ar=mk('g',{});
+  const dirUp=(mode==='sello');
+  for(let k=0;k<3;k++){
+    const y0=dirUp?(ccy-52-k*36):(ty0+54+k*40);
+    const dy=dirUp?-28:28;
+    const col=dirUp?'#D6D0C6':(mode==='bypass'?'#BEB8AE':'#1D6FB8');
+    const xs=(mode==='bypass')?[cx-(hw+14),cx+(hw+14)]:[cx];
+    xs.forEach(function(x){
+      const g3=el('g',{},ar);
+      el('line',{x1:x,y1:y0,x2:x,y2:y0+dy,stroke:col,'stroke-width':2.3,'stroke-linecap':'round'},g3);
+      el('path',{d:'M'+(x-6)+','+(y0+dy+(dirUp?8:-8))+' L'+x+','+(y0+dy)+' L'+(x+6)+','+(y0+dy+(dirUp?8:-8)),
+                 fill:'none',stroke:col,'stroke-width':2.3,'stroke-linecap':'round'},g3);
+      el('animate',{attributeName:'opacity',values:'0.1;1;0.1',dur:'1.5s',
+                    begin:(k*0.2)+'s',repeatCount:'indefinite'},g3);
+    });
+  }
+  // etiquetas
+  mk('text',{x:cx+ro2+16,y:ty0+22,'font-size':13,'font-weight':500,fill:'#7C7466'}).textContent='CASING 5½″';
+  mk('text',{x:cx+ro2+16,y:ccy-84,'font-size':12,fill:'#7C7466'}).textContent='Barra de peso';
+  mk('text',{x:cx+ro2+16,y:ccy+6,'font-size':13,'font-weight':600,fill:'#3B372F'}).textContent='Copa';
+}
+const CAPS={
+  seco:'Copa relajada: la herramienta baja por el casing sin oponer resistencia a la columna.',
+  bypass:'Copa plegada: el fluido pasa (bypass) y la herramienta penetra 80 m dentro de la columna.',
+  sello:'Copa expandida contra el casing: sella y eleva la columna de fluido hacia la superficie.',
+  aporte:'La formación aporta al pozo entre carreras: el nivel de fluido se recupera parcialmente.'
+};
+
+/* ========================================================== AUDIO ===== */
+const AUD={ctx:null,on:false,eng:null,eng2:null,nz:null,gE:null,gN:null,gM:null,lp:null,last:''};
+function audioInit(){
+  if(AUD.ctx) return;
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC) return;
+  const c=new AC(); AUD.ctx=c;
+  const g=c.createGain(); g.gain.value=0.0; g.connect(c.destination); AUD.gM=g;
+  const lp=c.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=760; lp.Q.value=.7;
+  lp.connect(g); AUD.lp=lp;
+  const o1=c.createOscillator(); o1.type='sawtooth'; o1.frequency.value=32;
+  const o2=c.createOscillator(); o2.type='square';   o2.frequency.value=64;
+  const gE=c.createGain(); gE.gain.value=.5; o1.connect(gE); o2.connect(gE);
+  gE.connect(lp); o1.start(); o2.start();
+  AUD.eng=o1; AUD.eng2=o2; AUD.gE=gE;
+  const len=c.sampleRate*2, buf=c.createBuffer(1,len,c.sampleRate), dd=buf.getChannelData(0);
+  let lastv=0;
+  for(let i=0;i<len;i++){ const w=Math.random()*2-1; lastv=(lastv+0.06*w)/1.06; dd[i]=lastv*3.2; }
+  const src=c.createBufferSource(); src.buffer=buf; src.loop=true;
+  const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=430; bp.Q.value=.6;
+  const gN=c.createGain(); gN.gain.value=.1;
+  src.connect(bp); bp.connect(gN); gN.connect(g); src.start();
+  AUD.nz=src; AUD.gN=gN;
+}
+function audioUpdate(st){
+  if(!AUD.on||!AUD.ctx) return;
+  const c=AUD.ctx, t=c.currentTime, mv=Math.min(1,Math.abs(st.vcab)/2.4);
+  let load=0;
+  if(st.phase==='IZAJE') load=0.34+0.66*mv;
+  else if(st.phase==='BAJADA'||st.phase==='INMERSION') load=0.12+0.34*mv;
+  const rpm=620+980*load, f0=rpm/60*3;
+  AUD.eng.frequency.setTargetAtTime(f0,t,0.09);
+  AUD.eng2.frequency.setTargetAtTime(f0*2,t,0.09);
+  AUD.lp.frequency.setTargetAtTime(420+900*load,t,0.12);
+  AUD.gE.gain.setTargetAtTime(0.16+0.34*load,t,0.10);
+  AUD.gN.gain.setTargetAtTime(0.04+0.13*load,t,0.10);
+  AUD.gM.gain.setTargetAtTime(0.30,t,0.20);
+  if(st.phase!==AUD.last && (st.phase==='BAJADA'||st.phase==='IZAJE')){
+    AUD.last=st.phase;
+    const o=c.createOscillator(), g=c.createGain();
+    o.type='triangle'; o.frequency.setValueAtTime(96,t);
+    o.frequency.exponentialRampToValueAtTime(42,t+0.24);
+    g.gain.setValueAtTime(0.34,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+    o.connect(g); g.connect(AUD.gM); o.start(t); o.stop(t+0.32);
+  } else if(st.phase!==AUD.last) AUD.last=st.phase;
+}
+
+/* ==================================================== ACTUALIZACIÓN == */
+let smokeSeed=[];
+for(let i=0;i<11;i++) smokeSeed.push(Math.random());
+
+function update(st,t){
+  const oil0=d2y(st.colTop), ct=d2y(Math.max(st.contacto,st.colTop)), bot=d2y(ZAP);
+  $('colOil').setAttribute('y',oil0); $('colOil').setAttribute('height',Math.max(0,ct-oil0));
+  $('colWat').setAttribute('y',ct);   $('colWat').setAttribute('height',Math.max(0,bot-ct));
+
+  const so=$('slugOil'), sw=$('slugWat'), sl=$('slugTop');
+  if(st.slug && st.slug[1]-st.slug[0]>0.4){
+    const a=d2y(st.slug[0]), b=d2y(st.slug[1]), wy=d2y(st.slug[1]-st.slugW);
+    so.setAttribute('y',a); so.setAttribute('height',Math.max(0,Math.min(wy,b)-a));
+    sw.setAttribute('y',Math.max(a,wy)); sw.setAttribute('height',Math.max(0,b-Math.max(a,wy)));
+    sl.setAttribute('y1',a); sl.setAttribute('y2',a); sl.setAttribute('opacity',1);
+  } else { so.setAttribute('height',0); sw.setAttribute('height',0); sl.setAttribute('opacity',0); }
+
+  // herramienta
+  const gt=$('gTool'), ty=d2y(st.tool);
+  const vis=(st.tool>0.5 || st.phase==='BAJADA' || st.phase==='IZAJE');
+  gt.setAttribute('opacity',vis?1:0);
+  gt.setAttribute('transform','translate('+WX+','+ty.toFixed(1)+')');
+  const seal=(st.phase==='IZAJE'), byp=(st.phase==='INMERSION');
+  const hw=seal?(RI-0.8):(byp?9:11.5), cy=-13;
+  $('cupL').setAttribute('d','M'+(-4.6)+','+(cy+7)+' L'+(-hw)+','+(cy-6)+' L'+(-hw)+','+(cy-1)+' L'+(-4.6)+','+(cy+12)+' Z');
+  $('cupR').setAttribute('d','M'+( 4.6)+','+(cy+7)+' L'+( hw)+','+(cy-6)+' L'+( hw)+','+(cy-1)+' L'+( 4.6)+','+(cy+12)+' Z');
+  ['L','R'].forEach(function(s,k){
+    const e=$('cupSeal'+s), x=(k?1:-1)*hw;
+    e.setAttribute('x1',x); e.setAttribute('x2',x);
+    e.setAttribute('y1',cy-6); e.setAttribute('y2',cy-1);
+    e.setAttribute('opacity',seal?1:0);
+  });
+  $('tHalo').setAttribute('fill-opacity',Math.abs(st.vcab)>0.05?0.16:0);
+  $('cableWell').setAttribute('y2',Math.max(GY,ty-76));
+
+  // cable en movimiento
+  const cm=$('cableMarks');
+  if(Math.abs(st.vcab)>0.05){
+    cm.setAttribute('opacity',1); cm.setAttribute('stroke',PHC[st.phase]);
+    cm.setAttribute('stroke-dashoffset',((st.dir>0?-1:1)*t*90).toFixed(1));
+  } else cm.setAttribute('opacity',0);
+
+  // aporte
+  const inf=$('inflow');
+  inf.setAttribute('opacity',st.inflow>0?1:0);
+  if(st.inflow>0){
+    const arr=inf.querySelectorAll('.iarr');
+    for(let i=0;i<arr.length;i++){
+      const e=arr[i], y=+e.getAttribute('data-y'), s=+e.getAttribute('data-s');
+      const ph=((t*1.5+i*0.09)%1);
+      const x1=WX+s*(RI+3), x0=x1+s*(16+24*ph);
+      e.setAttribute('d','M'+x0.toFixed(1)+','+y+' L'+x1.toFixed(1)+','+y+
+                        ' M'+(x1+s*9).toFixed(1)+','+(y-5)+' L'+x1.toFixed(1)+','+y+
+                        ' L'+(x1+s*9).toFixed(1)+','+(y+5));
+      e.setAttribute('opacity',(Math.sin(Math.PI*ph)*0.95).toFixed(2));
+    }
+  }
+
+  // cisterna: fluido translúcido subiendo dentro del tanque
+  const B=TANK.B, fh=fillH(st.volT/20), fy=B.y1-B.h*fh;
+  const tf=$('tankFill'), tg=$('tankGloss'), ts=$('tankSurf');
+  tf.setAttribute('x',B.x0.toFixed(1)); tf.setAttribute('width',B.w.toFixed(1));
+  tf.setAttribute('y',fy.toFixed(1));   tf.setAttribute('height',Math.max(0,B.y1-fy).toFixed(1));
+  tg.setAttribute('x',B.x0.toFixed(1)); tg.setAttribute('width',B.w.toFixed(1));
+  tg.setAttribute('y',fy.toFixed(1));   tg.setAttribute('height',Math.max(0,Math.min(3,B.y1-fy)).toFixed(1));
+  if(fh>0.004){
+    const wob=0.6*Math.sin(t*3.1);
+    ts.setAttribute('x1',(B.x0+2).toFixed(1)); ts.setAttribute('x2',(B.x1-2).toFixed(1));
+    ts.setAttribute('y1',(fy+wob).toFixed(1)); ts.setAttribute('y2',(fy-wob).toFixed(1));
+    ts.setAttribute('opacity',.85);
+  } else ts.setAttribute('opacity',0);
+  $('tankRead').textContent=nf(st.volT,2)+' m³';
+
+  // línea de descarga
+  const ff=$('flowFluid'), fd=$('flowDash');
+  if(st.flow>0.01){
+    const wfrac=cl(st.volW/0.06);
+    ff.setAttribute('opacity',st.flow.toFixed(2));
+    ff.setAttribute('stroke',wfrac>0.5?'#5AA6CE':'#14100E');
+    fd.setAttribute('opacity',(st.flow*0.9).toFixed(2));
+    fd.setAttribute('stroke-dashoffset',(t*60).toFixed(1));
+    const dr=$('flowDrop');
+    dr.setAttribute('opacity',(st.flow*0.95).toFixed(2));
+    dr.setAttribute('stroke',wfrac>0.5?'#5AA6CE':'#14100E');
+    dr.setAttribute('y2',(TANK.B.y0-4).toFixed(1));
+  } else { ff.setAttribute('opacity',0); fd.setAttribute('opacity',0);
+           $('flowDrop').setAttribute('opacity',0); }
+
+  // humo
+  const ex=RIG.x+RIG.w*RIG.exhaust.fx, ey=RIG.y+RIG.h*RIG.exhaust.fy;
+  const load=cl(Math.abs(st.vcab)/1.7);
+  window.SMOKE.forEach(function(c,k){
+    const ph=((t*(0.42+0.40*load)+smokeSeed[k])%1);
+    const yy=ey-4-ph*(40+22*load);
+    const xx=ex+Math.sin(ph*3.1+k*1.7)*(3+10*ph)+ph*9;
+    const rr=2.6+ph*(9+5*load);
+    const op=(0.34+0.34*load)*Math.pow(1-ph,1.5);
+    c.setAttribute('cx',xx.toFixed(1)); c.setAttribute('cy',yy.toFixed(1));
+    c.setAttribute('r',rr.toFixed(1)); c.setAttribute('fill-opacity',(yy>6?op:0).toFixed(3));
+  });
+
+  // chips
+  const yn=d2y(st.niv), yc=d2y(st.contacto), yd=d2y(st.tool);
+  const L=window.CHIP.level, C=window.CHIP.contact, D=window.CHIP.depth;
+  const lr=sizeChip(L,'NIVEL DE FLUIDO  '+nf(st.niv)+' m',448,yn,'l');
+  L.dash.setAttribute('x1',WX+RCEM+6); L.dash.setAttribute('y1',yn);
+  L.dash.setAttribute('x2',444);       L.dash.setAttribute('y2',yn);
+  L.dot.setAttribute('cx',WX+RCEM+6);  L.dot.setAttribute('cy',yn);
+  const ycc=(Math.abs(yc-yn)>42)?yc:(yn+46);
+  sizeChip(C,'CONTACTO PETRÓLEO – AGUA   '+nf(st.contacto)+' m',448,ycc,'l');
+  C.dash.setAttribute('x1',WX+RCEM+6); C.dash.setAttribute('y1',yc);
+  C.dash.setAttribute('x2',444);       C.dash.setAttribute('y2',ycc);
+  C.dot.setAttribute('cx',WX+RCEM+6);  C.dot.setAttribute('cy',yc);
+  D.g.setAttribute('opacity',vis?1:0); D.dash.setAttribute('opacity',vis?1:0);
+  D.dot.setAttribute('opacity',vis?1:0);
+  sizeChip(D,nf(st.tool)+' m',WX-RCEM-24,yd,'r');
+  D.dash.setAttribute('x1',WX-RCEM-6); D.dash.setAttribute('y1',yd);
+  D.dash.setAttribute('x2',WX-RCEM-22);D.dash.setAttribute('y2',yd);
+  D.dot.setAttribute('cx',WX-RCEM-6);  D.dot.setAttribute('cy',yd);
+
+  // alerta de corte
+  const al=$('alertCut');
+  if(st.corte){
+    al.style.display='';
+    $('alertDot').setAttribute('opacity',(0.55+0.45*Math.sin(t*5)).toFixed(2));
+    $('alertSub').textContent='agua '+nf(100*st.volwT/Math.max(0.01,st.volT),1)+' % · fin de operación';
+  } else al.style.display='none';
+
+  /* ---------------------------- panel ---------------------------- */
+  $('vTime').textContent=hm(st.tsim);
+  $('vComp').textContent='×'+Math.round(TOTAL_SIM/TOTAL_T)+' tiempo real';
+  $('vRun').textContent=st.carrera+' / '+NC;
+  const inf2=st.done?['Operación finalizada',['Corte de agua detectado en superficie.',
+                      'Pozo cerrado y equipo asegurado.']]:INFO[st.phase];
+  $('phName').textContent=inf2[0];
+  $('phName').style.color=st.done?'#27763D':PHC[st.phase];
+  $('phDot').style.background=st.done?'#27763D':PHC[st.phase];
+  $('phDesc').textContent=inf2[1][0]+' '+inf2[1][1];
+  ORDER.forEach(function(ph,i){
+    const p=$('pill_'+ph), act=(ph===st.phase && !st.done);
+    const done=(ORDER.indexOf(st.phase)>i)||st.done;
+    p.style.background=act?PHC[ph]:(done?PHC[ph]+'44':'#DDD8CE');
+    p.style.color=act?'#fff':(done?PHC[ph]:'#8E887C');
+  });
+  const kv=[nf(st.tool),nf(st.niv),st.sumerg>0?nf(st.sumerg):'—',
+            nf(Math.abs(st.vcab),2),nf(st.volC,2),nf(st.volT,2)];
+  for(let i=0;i<6;i++) $('k'+i).textContent=kv[i];
+
+  const mode=st.done?'aporte':({BAJADA:'seco',INMERSION:'bypass',IZAJE:'sello',
+              DESCARGA:'sello',AFLUENCIA:'aporte'}[st.phase]);
+  drawToolDetail(mode, st.slug?cl(st.slugW/SUMERG):0);
+  $('toolMode').textContent={seco:'bajada',bypass:'inmersión',sello:'izaje',aporte:'afluencia'}[mode];
+  $('toolCap').textContent=CAPS[mode];
+
+  const px=52+460*cl(st.tsim/TOTAL_SIM);
+  $('chReveal').setAttribute('width',(px-52).toFixed(1));
+  const hy=6+146*cl(st.tool/1200);
+  $('chHead').setAttribute('cx',px.toFixed(1)); $('chHead').setAttribute('cy',hy.toFixed(1));
+  $('chHead').setAttribute('fill',PHC[st.phase]||'#27763D'); $('chHead').setAttribute('opacity',1);
+  const cyy=6+146*(st.contacto/1200);
+  $('chContact').setAttribute('y1',cyy); $('chContact').setAttribute('y2',cyy);
+  $('chContactL').setAttribute('y',cyy-6);
+
+  const vmax=Math.max.apply(null,VOLS)*1.22;
+  for(let i=0;i<NC;i++){
+    const done=(i<st.carrera-1)||st.done, cur=(i===st.carrera-1)&&!st.done;
+    const v=done?VOLS[i]:(cur?st.volC:0), vw=done?VOLS_W[i]:(cur?st.volW:0);
+    $('bt'+i).style.height=(100*cl(v/vmax))+'%';
+    $('bt'+i).querySelector('.bar-f').style.background=done?'var(--crude)':'#7A7A7E';
+    $('bw'+i).style.height=(v>0?100*cl(vw/v):0)+'%';
+    const bv=$('bv'+i); bv.textContent=nf(v,2); bv.style.opacity=(v>0.004)?1:0;
+  }
+  $('progF').style.width=(100*cl(st.volT/VOL_TOTAL))+'%';
+  $('progV').textContent=nf(st.volT,2)+' / '+nf(VOL_TOTAL,2)+' m³';
+
+  // línea de tiempo
+  const pct=100*t/TOTAL_T;
+  $('head').style.left=pct+'%';
+  $('track').setAttribute('aria-valuenow',Math.round(pct));
+  $('trackTx').textContent='C-'+st.carrera+' · '+(st.done?'Finalizada':SHORT[st.phase]);
+  SEGS.forEach(function(s,i){ $('lane'+i).className=(t>=s.t1)?'done':''; });
+
+  audioUpdate(st);
+}
+
+/* =========================================================== APP ====== */
+const APP={t:0, playing:false, speed:1, last:0, ended:false};
+function loop(now){
+  if(APP.playing){
+    const dt=Math.min(0.06,(now-APP.last)/1000);
+    APP.last=now;
+    APP.t+=dt*APP.speed;
+    if(APP.t>=TOTAL_T){ APP.t=TOTAL_T; APP.playing=false; setPlayUI(); showSummary(true); }
+  } else APP.last=now;
+  update(state(APP.t),APP.t);
+  requestAnimationFrame(loop);
+}
+function setPlayUI(){
+  $('playIco').innerHTML=APP.playing?'<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>':'<path d="M8 5v14l11-7z"/>';
+  $('playTx').textContent=APP.playing?'Pausar':(APP.t>0?'Continuar':'Iniciar');
+  $('playBtn').setAttribute('aria-label',APP.playing?'Pausar la simulación':'Reproducir la simulación');
+}
+function showSummary(v){ $('veil').classList.toggle('show',!!v); }
+function seek(f){
+  APP.t=cl(f)*TOTAL_T;
+  if(APP.t<TOTAL_T-0.01) showSummary(false);
+  update(state(APP.t),APP.t);
+}
+
+function bind(){
+  $('playBtn').addEventListener('click',function(){
+    if(APP.t>=TOTAL_T-1e-3){ APP.t=0; showSummary(false); }
+    APP.playing=!APP.playing; APP.last=performance.now(); setPlayUI();
+    if(AUD.on&&AUD.ctx&&AUD.ctx.state==='suspended') AUD.ctx.resume();
+  });
+  $('resetBtn').addEventListener('click',function(){
+    APP.t=0; APP.playing=false; setPlayUI(); showSummary(false);
+  });
+  $('againBtn').addEventListener('click',function(){
+    APP.t=0; showSummary(false); APP.playing=true; APP.last=performance.now(); setPlayUI();
+  });
+  $('closeSum').addEventListener('click',function(){ showSummary(false); });
+  $('soundBtn').addEventListener('click',function(){
+    audioInit();
+    AUD.on=!AUD.on;
+    this.classList.toggle('on',AUD.on);
+    this.setAttribute('aria-pressed',String(AUD.on));
+    this.setAttribute('aria-label',AUD.on?'Silenciar el sonido del equipo':'Activar el sonido del equipo');
+    if(AUD.ctx){
+      if(AUD.on&&AUD.ctx.state==='suspended') AUD.ctx.resume();
+      AUD.gM.gain.setTargetAtTime(AUD.on?0.30:0,AUD.ctx.currentTime,0.15);
+    }
+  });
+  document.querySelectorAll('.seg button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.seg button').forEach(function(o){o.setAttribute('aria-pressed','false');});
+      b.setAttribute('aria-pressed','true');
+      APP.speed=parseFloat(b.dataset.sp);
+      $('speedTag').textContent='×'+String(APP.speed).replace('.',',');
+    });
+  });
+  const tr=$('track');
+  let drag=false;
+  const at=e=>{
+    const r=tr.getBoundingClientRect();
+    const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+    seek(x/r.width);
+  };
+  tr.addEventListener('pointerdown',function(e){ drag=true; tr.setPointerCapture(e.pointerId); at(e); });
+  tr.addEventListener('pointermove',function(e){ if(drag) at(e); });
+  tr.addEventListener('pointerup',  function(){ drag=false; });
+  tr.addEventListener('keydown',function(e){
+    const s={ArrowLeft:-1,ArrowRight:1,ArrowDown:-1,ArrowUp:1}[e.key];
+    if(s){ e.preventDefault(); seek((APP.t+s*TOTAL_T/60)/TOTAL_T); }
+    if(e.key==='Home'){ e.preventDefault(); seek(0); }
+    if(e.key==='End'){ e.preventDefault(); seek(1); }
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.target.closest('input,textarea')) return;
+    if(e.code==='Space'){ e.preventDefault(); $('playBtn').click(); }
+  });
+}
+
+/* ============================================================ BOOT ==== */
+buildScene();
+buildPanel();
+bind();
+setPlayUI();
+update(state(0),0);
+requestAnimationFrame(loop);
+if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  APP.playing=true; APP.last=performance.now(); setPlayUI();
+}
+})();
+</script>
+</body>
+</html>
