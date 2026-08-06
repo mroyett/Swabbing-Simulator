@@ -421,8 +421,6 @@ body{
                 stroke-width="6.4" opacity="0"/>
           <line id="flowDash" x1="252" y1="179.5" x2="334" y2="179.5" stroke="#EDE4D6"
                 stroke-width="3" stroke-dasharray="7 12" stroke-linecap="round" opacity="0"/>
-          <line id="flowDrop" x1="258" y1="179.5" x2="258" y2="120" stroke="#14100E"
-                stroke-width="4" opacity="0"/>
         </g>
 
         <!-- conjunto de boca de pozo -->
@@ -1392,12 +1390,7 @@ function update(st,t){
     ff.setAttribute('stroke',wfrac>0.5?'#5AA6CE':'#14100E');
     fd.setAttribute('opacity',(st.flow*0.9).toFixed(2));
     fd.setAttribute('stroke-dashoffset',(t*60).toFixed(1));
-    const dr=$('flowDrop');
-    dr.setAttribute('opacity',(st.flow*0.95).toFixed(2));
-    dr.setAttribute('stroke',wfrac>0.5?'#5AA6CE':'#14100E');
-    dr.setAttribute('y2',(TANK.B.y0-4).toFixed(1));
-  } else { ff.setAttribute('opacity',0); fd.setAttribute('opacity',0);
-           $('flowDrop').setAttribute('opacity',0); }
+  } else { ff.setAttribute('opacity',0); fd.setAttribute('opacity',0); }
 
   // humo
   const ex=RIG.x+RIG.w*RIG.exhaust.fx, ey=RIG.y+RIG.h*RIG.exhaust.fy;
